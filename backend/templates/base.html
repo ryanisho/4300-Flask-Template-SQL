@@ -233,11 +233,14 @@
               card.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
               card.style.border = '1px solid rgba(255, 255, 255, 0.1)';
               card.style.padding = '20px';
+              card.style.display = 'flex';
+              card.style.flexDirection = 'column';
+              card.style.height = '250px'; // Fix card height for consistency
               
               const score = result.score ? Math.round(result.score * 100) : '?';
               
               card.innerHTML = `
-                <div class="card-content">
+                <div class="card-content" style="display: flex; flex-direction: column; height: 100%;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h3 style="margin: 0; color: white; font-size: 18px;">${result.title || 'Untitled'}</h3>
                      <span style="background-color: rgba(255, 255, 255, 0.2); color: white; padding: 4px 8px; font-size: 14px;">${score}% match</span>
@@ -246,9 +249,11 @@
                      ${result.media_type ? (result.media_type.charAt(0).toUpperCase() + result.media_type.slice(1)) : 'Unknown'} 
                      ${result.genre ? '| ' + result.genre : ''}
                    </h4>
-                   <p style="color: rgba(255, 255, 255, 0.9); font-size: 14px; line-height: 1.5;">
-                     ${result.description ? (result.description.length > 150 ? result.description.substring(0, 150) + '...' : result.description) : 'No description available'}
-                   </p>
+                   <div style="overflow-y: auto; flex-grow: 1; max-height: 150px; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05);">
+                     <p style="color: rgba(255, 255, 255, 0.9); font-size: 14px; line-height: 1.5; margin: 0; padding-right: 8px;">
+                       ${result.description || 'No description available'}
+                     </p>
+                   </div>
                 </div>
               `;
               
