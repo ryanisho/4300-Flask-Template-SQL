@@ -61,13 +61,23 @@ def load_and_clean_data():
 
     books_df = books_df.drop_duplicates(subset=['book_name'])
 
-    books_clean = books_df[['book_name', 'summaries', 'categories']].rename(
+    if 'rating' in books_df.columns:
+        books_df['score'] = books_df['review_score'].astype(
+            float, errors='ignore')
+    else:
+        books_df['score'] = None
+
+    books_clean = books_df[['book_name', 'summaries', 'categories', 'score']].rename(
         columns={'book_name': 'title',
                  'summaries': 'description', 'categories': 'genre'}
     )
     books_clean['media_type'] = 'book'
 
-    movies_clean = movies_df[['Series_Title', 'Overview', 'Genre']].rename(
+    # Extract movie ratings from IMDB_Rating
+    movies_df['score'] = movies_df['IMDB_Rating'].astype(
+        float, errors='ignore')
+
+    movies_clean = movies_df[['Series_Title', 'Overview', 'Genre', 'score']].rename(
         columns={'Series_Title': 'title',
                  'Overview': 'description', 'Genre': 'genre'}
     )
@@ -79,7 +89,9 @@ def load_and_clean_data():
     games_df['description'] = games_df['short_description'].fillna(
         games_df['about_the_game']).fillna(
         games_df['detailed_description'])
-    games_clean = games_df[['name', 'description', 'genres']].rename(
+
+    # Games already have a score field
+    games_clean = games_df[['name', 'description', 'genres', 'score']].rename(
         columns={'name': 'title', 'genres': 'genre'}
     )
     games_clean['media_type'] = 'game'
@@ -89,6 +101,20 @@ def load_and_clean_data():
 
     combined_df['description'] = combined_df['description'].fillna('')
     combined_df['genre'] = combined_df['genre'].fillna('')
+
+    # Normalize scores to a 0-10 scale if they exist
+    combined_df['score'] = pd.to_numeric(combined_df['score'], errors='coerce')
+
+    # Fill missing scores with the median score of that media type
+    for media_type in ['book', 'movie', 'game']:
+        median_score = combined_df[combined_df['media_type']
+                                   == media_type]['score'].median()
+        mask = (combined_df['media_type'] == media_type) & (
+            combined_df['score'].isna())
+        combined_df.loc[mask, 'score'] = median_score
+
+    # If any scores are still NaN, fill with the overall median
+    combined_df['score'].fillna(combined_df['score'].median(), inplace=True)
 
     combined_df = combined_df[combined_df['description'].str.len() > 5]
 
@@ -232,7 +258,7 @@ def create_combined_embeddings(df, alpha=0.5):
 
 def save_final_embeddings(df):
     save_df = df[['title', 'description', 'genre',
-                  'media_type', 'combined_embedding']]
+                  'media_type', 'score', 'combined_embedding']]
 
     with open('models/final_embeddings.pkl', 'wb') as f:
         pickle.dump(save_df, f)

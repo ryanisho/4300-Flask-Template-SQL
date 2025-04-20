@@ -170,7 +170,8 @@ def search():
             'media_type': df.iloc[idx]['media_type'],
             'genre': df.iloc[idx]['genre'],
             'description': df.iloc[idx]['description'],
-            'score': float(cos_scores[idx])
+            'score': float(cos_scores[idx]),
+            'rating': float(df.iloc[idx]['score']) if 'score' in df.columns else None
         })
 
     return jsonify({'results': results})

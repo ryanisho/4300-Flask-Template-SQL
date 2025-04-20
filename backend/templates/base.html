@@ -248,6 +248,7 @@
                    <h4 style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 0; margin-bottom: 10px;">
                      ${result.media_type ? (result.media_type.charAt(0).toUpperCase() + result.media_type.slice(1)) : 'Unknown'} 
                      ${result.genre ? '| ' + result.genre : ''}
+                     ${result.rating !== undefined && result.rating !== null ? '| Rating: ' + result.rating.toFixed(1) + '/10' : ''}
                    </h4>
                    <div style="overflow-y: auto; flex-grow: 1; max-height: 150px; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05);">
                      <p style="color: rgba(255, 255, 255, 0.9); font-size: 14px; line-height: 1.5; margin: 0; padding-right: 8px;">
