@@ -10,6 +10,93 @@
     <link href="https://uploads-ssl.webflow.com/63a4d61127f93641d7ae56a7/63b878cce27f73545d106479_icon-256.png" rel="apple-touch-icon">
     <link rel="stylesheet" href="./static/assets/css/swiper-bundle.min.css">
     <link rel="stylesheet" href="./static/assets/css/popup.css">
+    <style>
+      .filter-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+        margin-bottom: 20px;
+      }
+      .filter-option {
+        position: relative;
+        display: inline-block;
+      }
+      .filter-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .filter-option label {
+        display: inline-block;
+        padding: 8px 16px;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.7);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .filter-option input[type="radio"]:checked + label {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 1);
+        color: white;
+      }
+      .filter-option label:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.8);
+        color: white;
+      }
+      .match-term {
+        display: inline-block;
+        margin: 4px;
+        padding: 6px 10px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        font-size: 14px;
+        max-width: 100%;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        word-break: break-word;
+        hyphens: auto;
+        line-height: 1.4;
+      }
+      .description-truncated {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 5px;
+      }
+      .description-full {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        line-height: 1.5;
+        display: none;
+      }
+      .show-more-less {
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: underline;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .media-card {
+        position: relative;
+        transition: transform 0.3s ease;
+      }
+      .media-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+      .explanation-section {
+        margin-top: 40px;
+        padding: 20px;
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .loading-indicator {
+        color: rgba(255, 255, 255, 0.7);
+        font-style: italic;
+      }
+    </style>
   </head>
   <body class="dark-theme">
     <div class="page-wrapper">
@@ -94,7 +181,28 @@
                         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
                         onfocus="this.style.borderColor='rgba(255, 255, 255, 1)'; this.style.boxShadow='0 4px 20px rgba(255, 255, 255, 0.15)';" 
                         onblur="this.style.borderColor='rgba(255, 255, 255, 0.7)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.1)';"
-                        name="synopsis"></textarea>
+                        name="query"></textarea>
+                      
+                      <div class="filter-group">
+                        <p style="width: 100%; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">Filter by media type:</p>
+                        <div class="filter-option">
+                          <input type="radio" id="all" name="media_type" value="all" checked>
+                          <label for="all">All Media</label>
+                        </div>
+                        <div class="filter-option">
+                          <input type="radio" id="book" name="media_type" value="book">
+                          <label for="book">Books Only</label>
+                        </div>
+                        <div class="filter-option">
+                          <input type="radio" id="movie" name="media_type" value="movie">
+                          <label for="movie">Movies Only</label>
+                        </div>
+                        <div class="filter-option">
+                          <input type="radio" id="game" name="media_type" value="game">
+                          <label for="game">Games Only</label>
+                        </div>
+                      </div>
+                      
                       <div style="display: flex; justify-content: flex-start; margin-top: 12px;">
                         <button type="submit" 
                         style="padding: 12px 24px; 
@@ -123,6 +231,109 @@
       <script src="./static/assets/js/gsap.min.js"></script>
       <script src="./static/assets/js/index.js"></script>
       
+      <script>
+        // Function to toggle description visibility
+        function toggleDescription(element, id) {
+          const truncated = document.getElementById(`desc-truncated-${id}`);
+          const full = document.getElementById(`desc-full-${id}`);
+          
+          if (truncated.style.display === 'none') {
+            truncated.style.display = 'block';
+            full.style.display = 'none';
+          } else {
+            truncated.style.display = 'none';
+            full.style.display = 'block';
+          }
+        }
+        
+        // Function to fetch explanation for query
+        // Updated fetchQueryExplanation function for SVD dimensions
+        function fetchQueryExplanation(query) {
+          const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const apiBaseUrl = isLocalhost ? '' : 'http://4300showcase.infosci.cornell.edu:5235/';
+          
+          // Use the first result (index 0) for the explanation
+          fetch(`${isLocalhost ? '' : apiBaseUrl}/explain?id=0&query=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(explanation => {
+              const tagsContainer = document.getElementById('explanation-tags');
+              
+              // Clear loading indicator
+              tagsContainer.innerHTML = '';
+              
+              if (explanation.svd_dimensions && explanation.svd_dimensions.length > 0) {
+                // Create a container for SVD dimensions
+                const dimensionsContainer = document.createElement('div');
+                dimensionsContainer.className = 'svd-dimensions';
+                dimensionsContainer.style.width = '100%';
+                
+                explanation.svd_dimensions.forEach(dimension => {
+                  // Create a dimension card
+                  const dimensionCard = document.createElement('div');
+                  dimensionCard.className = 'dimension-card';
+                  dimensionCard.style.marginBottom = '15px';
+                  dimensionCard.style.padding = '10px';
+                  dimensionCard.style.backgroundColor = 'rgba(255, 255, 255, 0.07)';
+                  dimensionCard.style.borderRadius = '4px';
+                  
+                  // Create header for dimension
+                  const dimensionHeader = document.createElement('div');
+                  dimensionHeader.style.marginBottom = '8px';
+                  dimensionHeader.style.fontWeight = 'bold';
+                  dimensionHeader.textContent = dimension.name;
+                  
+                  dimensionCard.appendChild(dimensionHeader);
+                  
+                  // Create terms container
+                  const termsContainer = document.createElement('div');
+                  termsContainer.style.display = 'flex';
+                  termsContainer.style.flexWrap = 'wrap';
+                  termsContainer.style.gap = '6px';
+                  
+                  // Add each term as a tag
+                  if (dimension.terms && dimension.terms.length > 0) {
+                    dimension.terms.forEach(term => {
+                      const termTag = document.createElement('span');
+                      termTag.className = 'match-term';
+                      
+                      // Different styling based on term direction
+                      if (term.direction === 'positive') {
+                        termTag.style.backgroundColor = 'rgba(100, 255, 100, 0.1)';
+                        termTag.style.borderColor = 'rgba(100, 255, 100, 0.3)';
+                      } else {
+                        termTag.style.backgroundColor = 'rgba(255, 100, 100, 0.1)';
+                        termTag.style.borderColor = 'rgba(255, 100, 100, 0.3)';
+                      }
+                      
+                      termTag.textContent = term.term;
+                      termsContainer.appendChild(termTag);
+                    });
+                  }
+                  
+                  dimensionCard.appendChild(termsContainer);
+                  dimensionsContainer.appendChild(dimensionCard);
+                });
+                
+                tagsContainer.appendChild(dimensionsContainer);
+              } else if (explanation.tags && explanation.tags.length > 0) {
+                // Fallback to regular tags if no SVD dimensions
+                explanation.tags.forEach(tag => {
+                  const tagElement = document.createElement('span');
+                  tagElement.className = 'match-term';
+                  tagElement.textContent = tag;
+                  tagsContainer.appendChild(tagElement);
+                });
+              } else {
+                tagsContainer.innerHTML = '<p>No specific dimensions found for this query.</p>';
+              }
+            })
+            .catch(error => {
+              document.getElementById('explanation-tags').innerHTML = 
+                '<p>Error loading explanation.</p>';
+            });
+        }
+      </script>
+      
       <!-- pass information script -->
       <script>
       document.addEventListener('DOMContentLoaded', function() {
@@ -141,7 +352,7 @@
         synopsisForm.addEventListener('submit', function(e) {
           e.preventDefault();
           
-          const query = document.querySelector('textarea[name="synopsis"]').value;
+          const query = document.querySelector('textarea[name="query"]').value;
           
           if (!query) {
             alert('Please enter text to search');
@@ -172,30 +383,20 @@
           // Use the correct API URL based on environment
           const searchUrl = isLocalhost ? '/search' : `${apiBaseUrl}/search`;
           
-          // Log the request for debugging
-          console.log(`Sending request to: ${searchUrl}`);
-          console.log(`Query: ${query}`);
-          console.log(`Media Type: ${mediaType}`);
-          
           fetch(searchUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: `query=${encodeURIComponent(query)}&media_type=${encodeURIComponent(mediaType)}`,
-            credentials: 'include', // Include credentials like cookies if needed
-            mode: 'cors' // Enable CORS for cross-domain requests
+            credentials: 'include',
+            mode: 'cors'
           })
           .then(response => {
-            // Log response status for debugging
-            console.log(`Response status: ${response.status}`);
-            console.log(`Response headers:`, response.headers);
-            
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
               return response.json();
             } else {
-              // For more detailed error message
               return response.text().then(text => {
                 console.error('Non-JSON response:', text);
                 throw new Error('Server returned non-JSON response. Check the console for details.');
@@ -207,9 +408,6 @@
               document.getElementById('loading').remove();
             }
             
-            // Log data for debugging
-            console.log('Received data:', data);
-            
             if (data.error) {
               resultsContainer.innerHTML = `<div class="alert-error" style="color: #ff6b6b; padding: 15px; background-color: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); margin-bottom: 15px;">${data.error}</div>`;
               return;
@@ -220,6 +418,16 @@
               return;
             }
             
+            // Add header showing the search and filter
+            const resultsHeader = document.createElement('div');
+            resultsHeader.innerHTML = `
+              <h2 style="color: white; margin-bottom: 10px;">Results for "${query.length > 40 ? query.substring(0, 40) + '...' : query}"</h2>
+              <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px;">
+                Found ${data.results.length} matches ${mediaType !== 'all' ? `(${mediaType}s only)` : 'across all media'}
+              </p>
+            `;
+            resultsContainer.appendChild(resultsHeader);
+            
             // Create a grid for results
             const resultsGrid = document.createElement('div');
             resultsGrid.style.display = 'grid';
@@ -227,34 +435,42 @@
             resultsGrid.style.gap = '20px';
             resultsGrid.style.marginTop = '20px';
             
-            data.results.forEach(result => {
+            data.results.forEach((result, index) => {
               const card = document.createElement('div');
               card.className = `media-card ${result.media_type || ''}`;
               card.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
               card.style.border = '1px solid rgba(255, 255, 255, 0.1)';
               card.style.padding = '20px';
-              card.style.display = 'flex';
-              card.style.flexDirection = 'column';
-              card.style.height = '250px'; // Fix card height for consistency
               
               const score = result.score ? Math.round(result.score * 100) : '?';
               
+              // Check if description needs truncation
+              const description = result.description || 'No description available';
+              const needsTruncation = description.length > 150;
+              const shortDesc = needsTruncation ? description.substring(0, 150) + '...' : description;
+              
               card.innerHTML = `
-                <div class="card-content" style="display: flex; flex-direction: column; height: 100%;">
+                <div class="card-content">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h3 style="margin: 0; color: white; font-size: 18px;">${result.title || 'Untitled'}</h3>
                      <span style="background-color: rgba(255, 255, 255, 0.2); color: white; padding: 4px 8px; font-size: 14px;">${score}% match</span>
-                   </div>
-                   <h4 style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 0; margin-bottom: 10px;">
-                     ${result.media_type ? (result.media_type.charAt(0).toUpperCase() + result.media_type.slice(1)) : 'Unknown'} 
-                     ${result.genre ? '| ' + result.genre : ''}
-                     ${result.rating !== undefined && result.rating !== null ? '| Rating: ' + result.rating.toFixed(1) + '/10' : ''}
-                   </h4>
-                   <div style="overflow-y: auto; flex-grow: 1; max-height: 150px; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05);">
-                     <p style="color: rgba(255, 255, 255, 0.9); font-size: 14px; line-height: 1.5; margin: 0; padding-right: 8px;">
-                       ${result.description || 'No description available'}
-                     </p>
-                   </div>
+                  </div>
+                  <h4 style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 0; margin-bottom: 10px;">
+                    ${result.media_type ? (result.media_type.charAt(0).toUpperCase() + result.media_type.slice(1)) : 'Unknown'} 
+                    ${result.genre ? '| ' + result.genre : ''}
+                  </h4>
+                  
+                  <!-- Description with expandable functionality -->
+                  <div class="description-container">
+                    <p id="desc-truncated-${index}" class="description-truncated">
+                      ${shortDesc}
+                      ${needsTruncation ? `<span class="show-more-less" onclick="toggleDescription(this, ${index})">Show more</span>` : ''}
+                    </p>
+                    <p id="desc-full-${index}" class="description-full">
+                      ${description}
+                      <span class="show-more-less" onclick="toggleDescription(this, ${index})">Show less</span>
+                    </p>
+                  </div>
                 </div>
               `;
               
@@ -262,6 +478,25 @@
             });
             
             resultsContainer.appendChild(resultsGrid);
+            
+            const explanationSection = document.createElement('div');
+            explanationSection.id = 'query-explanation';
+            explanationSection.className = 'explanation-section';
+
+            explanationSection.innerHTML = `
+              <h3 style="color: white; margin-top: 0;">Why these were recommended:</h3>
+              <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 20px;">
+                SVD dimensions that influenced these results:
+              </p>
+              <div id="explanation-tags" style="display: flex; flex-direction: column; margin-bottom: 20px;">
+                <div class="loading-indicator">Loading...</div>
+              </div>
+            `;
+
+            resultsContainer.appendChild(explanationSection);
+
+            // Fetch explanation data for the query
+            fetchQueryExplanation(query);
           })
           .catch(error => {
             console.error('Error details:', error);

@@ -61,23 +61,13 @@ def load_and_clean_data():
 
     books_df = books_df.drop_duplicates(subset=['book_name'])
 
-    if 'rating' in books_df.columns:
-        books_df['score'] = books_df['review_score'].astype(
-            float, errors='ignore')
-    else:
-        books_df['score'] = None
-
-    books_clean = books_df[['book_name', 'summaries', 'categories', 'score']].rename(
+    books_clean = books_df[['book_name', 'summaries', 'categories']].rename(
         columns={'book_name': 'title',
                  'summaries': 'description', 'categories': 'genre'}
     )
     books_clean['media_type'] = 'book'
 
-    # Extract movie ratings from IMDB_Rating
-    movies_df['score'] = movies_df['IMDB_Rating'].astype(
-        float, errors='ignore')
-
-    movies_clean = movies_df[['Series_Title', 'Overview', 'Genre', 'score']].rename(
+    movies_clean = movies_df[['Series_Title', 'Overview', 'Genre']].rename(
         columns={'Series_Title': 'title',
                  'Overview': 'description', 'Genre': 'genre'}
     )
@@ -89,9 +79,7 @@ def load_and_clean_data():
     games_df['description'] = games_df['short_description'].fillna(
         games_df['about_the_game']).fillna(
         games_df['detailed_description'])
-
-    # Games already have a score field
-    games_clean = games_df[['name', 'description', 'genres', 'score']].rename(
+    games_clean = games_df[['name', 'description', 'genres']].rename(
         columns={'name': 'title', 'genres': 'genre'}
     )
     games_clean['media_type'] = 'game'
@@ -101,20 +89,6 @@ def load_and_clean_data():
 
     combined_df['description'] = combined_df['description'].fillna('')
     combined_df['genre'] = combined_df['genre'].fillna('')
-
-    # Normalize scores to a 0-10 scale if they exist
-    combined_df['score'] = pd.to_numeric(combined_df['score'], errors='coerce')
-
-    # Fill missing scores with the median score of that media type
-    for media_type in ['book', 'movie', 'game']:
-        median_score = combined_df[combined_df['media_type']
-                                   == media_type]['score'].median()
-        mask = (combined_df['media_type'] == media_type) & (
-            combined_df['score'].isna())
-        combined_df.loc[mask, 'score'] = median_score
-
-    # If any scores are still NaN, fill with the overall median
-    combined_df['score'].fillna(combined_df['score'].median(), inplace=True)
 
     combined_df = combined_df[combined_df['description'].str.len() > 5]
 
@@ -145,14 +119,16 @@ def preprocess_text(text):
 def create_tfidf_svd_embeddings(df, n_components=300):
     print("Creating TF-IDF embeddings with SVD...")
 
-    df['combined_text'] = df['title'] + ". " + df['description']
+    # Emphasize title more by repeating it
+    df['combined_text'] = df['title'] + " " + df['title'] + " " + df['description']
     df['processed_text'] = [preprocess_text(
         text) for text in tqdm(df['combined_text'])]
 
+    # Increase max_features for more vocabulary coverage
     tfidf_vectorizer = TfidfVectorizer(
-        max_features=5000,
-        min_df=3,
-        max_df=0.9,
+        max_features=10000,  # Increased from 5000
+        min_df=2,            # Reduced from 3 to capture more rare terms
+        max_df=0.95,         # Increased from 0.9 to include more common terms
         sublinear_tf=True
     )
 
@@ -187,18 +163,23 @@ def mean_pooling(model_output, attention_mask):
 
 
 def create_bert_embeddings(df, batch_size=16, max_length=512):
-    print("Creating BERT embeddings...")
+    print("Creating BERT embeddings with improved model...")
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        'sentence-transformers/all-MiniLM-L6-v2')
-    model = AutoModel.from_pretrained(
-        'sentence-transformers/all-MiniLM-L6-v2').to(device)
+    # Use a better transformer model - mpnet has better semantic understanding
+    model_name = "sentence-transformers/all-mpnet-base-v2"
+    
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModel.from_pretrained(model_name).to(device)
 
-    df['combined_text'] = df['title'] + ". " + df['description']
+    # Process titles and descriptions separately to apply different weights
+    df['title_text'] = df['title']
+    df['desc_text'] = df['description']
 
-    embeddings = []
+    # Process titles
+    print("Processing titles...")
+    title_embeddings = []
     for i in tqdm(range(0, len(df), batch_size)):
-        batch_texts = df['combined_text'].iloc[i:i+batch_size].tolist()
+        batch_texts = df['title_text'].iloc[i:i+batch_size].tolist()
 
         encoded_input = tokenizer(
             batch_texts,
@@ -211,16 +192,51 @@ def create_bert_embeddings(df, batch_size=16, max_length=512):
         with torch.no_grad():
             model_output = model(**encoded_input)
 
-        batch_embeddings = mean_pooling(
+        batch_embs = mean_pooling(
             model_output, encoded_input['attention_mask']).cpu().numpy()
-        embeddings.extend(batch_embeddings.tolist())
+        title_embeddings.extend(batch_embs.tolist())
 
-    df['bert_embedding'] = embeddings
+    # Process descriptions
+    print("Processing descriptions...")
+    desc_embeddings = []
+    for i in tqdm(range(0, len(df), batch_size)):
+        batch_texts = df['desc_text'].iloc[i:i+batch_size].fillna('').tolist()
+
+        encoded_input = tokenizer(
+            batch_texts,
+            padding=True,
+            truncation=True,
+            max_length=max_length,
+            return_tensors='pt'
+        ).to(device)
+
+        with torch.no_grad():
+            model_output = model(**encoded_input)
+
+        batch_embs = mean_pooling(
+            model_output, encoded_input['attention_mask']).cpu().numpy()
+        desc_embeddings.extend(batch_embs.tolist())
+
+    combined_embeddings = []
+    for i in range(len(df)):
+        title_emb = np.array(title_embeddings[i])
+        desc_emb = np.array(desc_embeddings[i])
+        
+        title_emb = title_emb / (np.linalg.norm(title_emb) + 1e-8)
+        desc_emb = desc_emb / (np.linalg.norm(desc_emb) + 1e-8)
+        
+        weighted_emb = (title_emb * 0.6) + (desc_emb * 0.4)
+        
+        weighted_emb = weighted_emb / (np.linalg.norm(weighted_emb) + 1e-8)
+        
+        combined_embeddings.append(weighted_emb.tolist())
+
+    df['bert_embedding'] = combined_embeddings
 
     return df
 
 
-def create_combined_embeddings(df, alpha=0.5):
+def create_combined_embeddings(df, alpha=0.7):  # Increased BERT weight from 0.5 to 0.7
     tfidf_svd_dim = len(df['tfidf_svd_embedding'].iloc[0])
     bert_dim = len(df['bert_embedding'].iloc[0])
     print(f"Dimensions - TF-IDF+SVD: {tfidf_svd_dim}, BERT: {bert_dim}")
@@ -232,15 +248,21 @@ def create_combined_embeddings(df, alpha=0.5):
         tfidf_svd_emb = np.array(df['tfidf_svd_embedding'].iloc[i])
         bert_emb = np.array(df['bert_embedding'].iloc[i])
 
+        # Normalize
         tfidf_svd_emb = tfidf_svd_emb / (np.linalg.norm(tfidf_svd_emb) + 1e-8)
         bert_emb = bert_emb / (np.linalg.norm(bert_emb) + 1e-8)
+        
+        # Apply weights - more weight to BERT for better semantic matching
+        tfidf_svd_emb = tfidf_svd_emb * (1 - alpha)  # 30% weight
+        bert_emb = bert_emb * alpha  # 70% weight
 
         concatenated = np.concatenate([tfidf_svd_emb, bert_emb])
         all_concatenated.append(concatenated)
 
     all_concatenated = np.array(all_concatenated)
 
-    final_dim = 512
+    # Increase dimensions for better information preservation
+    final_dim = 768
     pca = PCA(n_components=final_dim)
     reduced_embeddings = pca.fit_transform(all_concatenated)
 
@@ -258,7 +280,7 @@ def create_combined_embeddings(df, alpha=0.5):
 
 def save_final_embeddings(df):
     save_df = df[['title', 'description', 'genre',
-                  'media_type', 'score', 'combined_embedding']]
+                  'media_type', 'combined_embedding']]
 
     with open('models/final_embeddings.pkl', 'wb') as f:
         pickle.dump(save_df, f)
@@ -275,6 +297,6 @@ if __name__ == "__main__":
 
     combined_df = create_bert_embeddings(combined_df)
 
-    combined_df = create_combined_embeddings(combined_df, alpha=0.3)
+    combined_df = create_combined_embeddings(combined_df, alpha=0.7)
 
     save_final_embeddings(combined_df)
