@@ -316,3 +316,149 @@ var mySwiper = new Swiper('.swiper-testimonials', {
         },
     },
 })
+
+// Function to fetch score breakdown
+async function fetchScoreBreakdown(itemIndex, query) {
+    try {
+        const response = await fetch(`/score_breakdown?id=${itemIndex}&query=${encodeURIComponent(query)}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch score breakdown');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching score breakdown:', error);
+        return null;
+    }
+}
+
+// Create tooltip element for score breakdown
+function createScoreBreakdownTooltip() {
+    const tooltip = document.createElement('div');
+    tooltip.id = 'score-breakdown-tooltip';
+    tooltip.className = 'score-tooltip';
+    tooltip.style.display = 'none';
+    tooltip.style.position = 'absolute';
+    tooltip.style.zIndex = '1000';
+    tooltip.style.background = 'rgba(0, 0, 0, 0.9)';
+    tooltip.style.color = '#fff';
+    tooltip.style.padding = '10px 15px';
+    tooltip.style.borderRadius = '5px';
+    tooltip.style.maxWidth = '300px';
+    tooltip.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+    document.body.appendChild(tooltip);
+    return tooltip;
+}
+
+// Format the breakdown data as HTML
+function formatScoreBreakdown(data) {
+    let html = `
+        <h3 style="margin: 0 0 8px 0; font-size: 16px;">Why this recommendation?</h3>
+        <p style="margin: 0 0 8px 0;"><strong>Overall score:</strong> ${(data.overall_score * 100).toFixed(1)}%</p>
+    `;
+
+    // Add component scores if available
+    if (data.components && Object.keys(data.components).length > 0) {
+        html += '<div style="margin-bottom: 8px;"><strong>Contributing factors:</strong><ul style="margin: 5px 0; padding-left: 20px;">';
+        
+        if (data.components.content_match) {
+            html += `<li>Content similarity: ${(data.components.content_match * 100).toFixed(1)}%</li>`;
+        }
+        
+        if (data.components.semantic_match) {
+            html += `<li>Semantic similarity: ${(data.components.semantic_match * 100).toFixed(1)}%</li>`;
+        }
+        
+        html += '</ul></div>';
+    }
+
+    // Add matching terms if available
+    if (data.matching_terms && data.matching_terms.length > 0) {
+        html += '<div style="margin-bottom: 8px;"><strong>Key matching terms:</strong><ul style="margin: 5px 0; padding-left: 20px;">';
+        
+        data.matching_terms.forEach(term => {
+            html += `<li>${term.term}</li>`;
+        });
+        
+        html += '</ul></div>';
+    }
+
+    // Add metadata factors if available
+    if (data.metadata_factors) {
+        if (data.metadata_factors.genre_match) {
+            html += '<p style="margin: 2px 0;"><strong>✓</strong> Genre match</p>';
+        }
+        
+        if (data.metadata_factors.title_match) {
+            html += '<p style="margin: 2px 0;"><strong>✓</strong> Title match</p>';
+        }
+    }
+
+    return html;
+}
+
+// Initialize tooltip and add event listeners to score elements
+function initScoreBreakdown() {
+    const tooltip = createScoreBreakdownTooltip();
+    let currentRequest = null;
+    let tooltipTimeout = null;
+    
+    // Add event listeners to all score elements
+    document.addEventListener('mouseover', async (event) => {
+        // Check if the hovered element has the 'score-value' class
+        if (event.target.classList.contains('score-value')) {
+            const resultElement = event.target.closest('.result-item');
+            if (resultElement) {
+                const itemIndex = resultElement.dataset.index;
+                const searchQuery = document.getElementById('search-input').value;
+                
+                // Clear any existing timeout
+                if (tooltipTimeout) clearTimeout(tooltipTimeout);
+                
+                // Set a small delay before showing the tooltip to prevent flickering
+                tooltipTimeout = setTimeout(async () => {
+                    // Position the tooltip near the hovered element
+                    const rect = event.target.getBoundingClientRect();
+                    tooltip.style.left = `${rect.right + 10}px`;
+                    tooltip.style.top = `${rect.top - 10}px`;
+                    
+                    // Show loading indicator
+                    tooltip.innerHTML = 'Loading score breakdown...';
+                    tooltip.style.display = 'block';
+                    
+                    // Fetch the breakdown data
+                    const data = await fetchScoreBreakdown(itemIndex, searchQuery);
+                    if (data && !data.error) {
+                        tooltip.innerHTML = formatScoreBreakdown(data);
+                    } else {
+                        tooltip.innerHTML = 'Unable to load score breakdown.';
+                    }
+                }, 300);
+            }
+        }
+    });
+    
+    // Hide tooltip when mouse leaves the score element
+    document.addEventListener('mouseout', (event) => {
+        if (event.target.classList.contains('score-value')) {
+            if (tooltipTimeout) clearTimeout(tooltipTimeout);
+            tooltipTimeout = setTimeout(() => {
+                tooltip.style.display = 'none';
+            }, 200);
+        }
+    });
+    
+    // Keep tooltip visible when hovering over the tooltip itself
+    tooltip.addEventListener('mouseover', () => {
+        if (tooltipTimeout) clearTimeout(tooltipTimeout);
+    });
+    
+    // Hide tooltip when mouse leaves the tooltip
+    tooltip.addEventListener('mouseout', () => {
+        tooltip.style.display = 'none';
+    });
+}
+
+// Initialize the score breakdown functionality when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    initScoreBreakdown();
+});

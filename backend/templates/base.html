@@ -10,6 +10,153 @@
     <link href="https://uploads-ssl.webflow.com/63a4d61127f93641d7ae56a7/63b878cce27f73545d106479_icon-256.png" rel="apple-touch-icon">
     <link rel="stylesheet" href="./static/assets/css/swiper-bundle.min.css">
     <link rel="stylesheet" href="./static/assets/css/popup.css">
+    <style>
+      .filter-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+        margin-bottom: 20px;
+      }
+      .filter-option {
+        position: relative;
+        display: inline-block;
+      }
+      .filter-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .filter-option label {
+        display: inline-block;
+        padding: 8px 16px;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.7);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .filter-option input[type="radio"]:checked + label {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 1);
+        color: white;
+      }
+      .filter-option label:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.8);
+        color: white;
+      }
+      .match-term {
+        display: inline-block;
+        margin: 4px;
+        padding: 6px 10px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        font-size: 14px;
+        max-width: 100%;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        word-break: break-word;
+        hyphens: auto;
+        line-height: 1.4;
+      }
+      .description-truncated {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 5px;
+      }
+      .description-full {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        line-height: 1.5;
+        display: none;
+      }
+      .show-more-less {
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: underline;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .media-card {
+        position: relative;
+        transition: transform 0.3s ease;
+      }
+      .media-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+      .loading-indicator {
+        color: rgba(255, 255, 255, 0.7);
+        font-style: italic;
+      }
+      
+      /* Tag styling */
+      .match-tag {
+        display: inline-block;
+        padding: 5px 10px;
+        margin: 3px;
+        border-radius: 0px; /* Changed from border-radius: 16px; to make boxy */
+        font-size: 14px;
+        transition: all 0.2s ease;
+        cursor: default;
+      }
+      
+      /* Different tag types */
+      .query-exact-match {
+        background-color: rgba(120, 220, 255, 0.15);
+        border: 1px solid rgba(120, 220, 255, 0.3);
+        color: rgb(180, 235, 255);
+      }
+      
+      .query-match {
+        background-color: rgba(120, 180, 255, 0.12);
+        border: 1px solid rgba(120, 180, 255, 0.25);
+        color: rgb(160, 200, 255);
+      }
+      
+      .title-match {
+        background-color: rgba(255, 215, 0, 0.15);
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        color: rgb(255, 230, 150);
+      }
+      
+      .description-match {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgb(220, 220, 220);
+      }
+      
+      .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 15px;
+      }
+      
+      .explanation-section {
+        background-color: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+      }
+      
+      .tag-legend {
+        margin-top: 15px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      
+      .match-score {
+        background-color: rgba(255, 255, 255, 0.07);
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 15px;
+      }
+    </style>
   </head>
   <body class="dark-theme">
     <div class="page-wrapper">
@@ -94,7 +241,28 @@
                         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
                         onfocus="this.style.borderColor='rgba(255, 255, 255, 1)'; this.style.boxShadow='0 4px 20px rgba(255, 255, 255, 0.15)';" 
                         onblur="this.style.borderColor='rgba(255, 255, 255, 0.7)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.1)';"
-                        name="synopsis"></textarea>
+                        name="query"></textarea>
+                      
+                      <div class="filter-group">
+                        <p style="width: 100%; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">Filter by media type:</p>
+                        <div class="filter-option">
+                          <input type="radio" id="all" name="media_type" value="all" checked>
+                          <label for="all">All Media</label>
+                        </div>
+                        <div class="filter-option">
+                          <input type="radio" id="book" name="media_type" value="book">
+                          <label for="book">Books Only</label>
+                        </div>
+                        <div class="filter-option">
+                          <input type="radio" id="movie" name="media_type" value="movie">
+                          <label for="movie">Movies Only</label>
+                        </div>
+                        <div class="filter-option">
+                          <input type="radio" id="game" name="media_type" value="game">
+                          <label for="game">Games Only</label>
+                        </div>
+                      </div>
+                      
                       <div style="display: flex; justify-content: flex-start; margin-top: 12px;">
                         <button type="submit" 
                         style="padding: 12px 24px; 
@@ -123,6 +291,294 @@
       <script src="./static/assets/js/gsap.min.js"></script>
       <script src="./static/assets/js/index.js"></script>
       
+      <script>
+        // Function to toggle description visibility
+        function toggleDescription(element, id) {
+          const truncated = document.getElementById(`desc-truncated-${id}`);
+          const full = document.getElementById(`desc-full-${id}`);
+          
+          if (truncated.style.display === 'none') {
+            truncated.style.display = 'block';
+            full.style.display = 'none';
+          } else {
+            truncated.style.display = 'none';
+            full.style.display = 'block';
+          }
+        }
+        
+        // This function will be used to fetch explanations for a specific result
+        function fetchQueryExplanation(itemId, query) {
+          // Make sure itemId is an integer and query is a string
+          if (typeof itemId !== 'number') {
+            console.error('itemId must be a number:', itemId);
+            itemId = 0; // default to first item
+          }
+          
+          if (!query || typeof query !== 'string') {
+            console.error('Invalid query:', query);
+            return;
+          }
+
+          const tagsContainer = document.getElementById('explanation-tags');
+          tagsContainer.innerHTML = '<div class="loading-indicator">Loading explanation...</div>';
+          
+          // Get the base URL
+          const baseUrl = window.location.origin;
+          
+          console.log(`Fetching explanation for item ID: ${itemId} with query: "${query}"`);
+          
+          // Make sure to encode the query properly
+          fetch(`${baseUrl}/explain?id=${itemId}&query=${encodeURIComponent(query)}`)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log("Explanation data received:", data);
+              
+              // Clear loading indicator
+              tagsContainer.innerHTML = '';
+              
+              if (data.error) {
+                tagsContainer.innerHTML = `<p style="color: #ff6b6b;">Error: ${data.error}</p>`;
+                return;
+              }
+              
+              // Display top keywords with updated styling
+              if (data.top_keywords && data.top_keywords.length > 0) {
+                const keywordsSection = document.createElement('div');
+                keywordsSection.className = 'top-keywords-section';
+                keywordsSection.style.marginBottom = '20px';
+                
+                const keywordsHeader = document.createElement('h4');
+                keywordsHeader.style.color = 'white';
+                keywordsHeader.style.marginTop = '0';
+                keywordsHeader.style.marginBottom = '15px';
+                keywordsSection.appendChild(keywordsHeader);
+                
+                const keywordsWrapper = document.createElement('div');
+                keywordsWrapper.className = 'tags-container';
+                
+                data.top_keywords.forEach(keyword => {
+                  const keywordTag = document.createElement('span');
+                  
+                  // Use the same white box styling but with square corners
+                  keywordTag.className = 'match-tag';
+                  keywordTag.style.backgroundColor = 'rgba(255, 255, 255, 0.07)';
+                  keywordTag.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+                  keywordTag.style.color = 'white';
+                  keywordTag.style.borderRadius = '0px'; // Make corners square instead of rounded
+                  
+                  keywordTag.textContent = keyword.keyword;
+                  keywordsWrapper.appendChild(keywordTag);
+                });
+                
+                keywordsSection.appendChild(keywordsWrapper);
+                tagsContainer.appendChild(keywordsSection);
+              } else {
+                // Display a message if no keywords available
+                const noKeywordsMsg = document.createElement('p');
+                noKeywordsMsg.textContent = 'No keywords available for this search.';
+                noKeywordsMsg.style.color = 'rgba(255, 255, 255, 0.7)';
+                tagsContainer.appendChild(noKeywordsMsg);
+              }
+              
+              // Only display the matches section if we actually have matches
+              if (data.matches && data.matches.length > 0) {
+                // Create header for explanation
+                const header = document.createElement('h4');
+                header.textContent = 'SVD tags matching your query:';
+                header.style.color = 'white';
+                header.style.marginTop = '20px';
+                header.style.marginBottom = '15px';
+                tagsContainer.appendChild(header);
+                
+                // Container for tags
+                const tagsWrapper = document.createElement('div');
+                tagsWrapper.className = 'tags-container';
+                
+                // Process the matches from the updated API response format
+                data.matches.forEach(match => {
+                  const tagElement = document.createElement('span');
+                  
+                  // Set class based on match properties
+                  let tagClass = 'match-tag ';
+                  
+                  if (match.match_type === 'exact') {
+                    tagClass += 'query-exact-match';
+                  } else if (match.match_type === 'stem' || match.match_type === 'substring') {
+                    tagClass += 'query-match';
+                  } else if (match.source === 'title') {
+                    tagClass += 'title-match';
+                  } else {
+                    tagClass += 'description-match';
+                  }
+                  
+                  tagElement.className = tagClass;
+                  
+                  // Display format: item_term (query_term)
+                  let displayText = match.item_term;
+                  if (match.query_term && match.query_term !== 'semantic concept') {
+                    displayText += ` (from "${match.query_term}")`;
+                  } else if (match.match_type === 'semantic') {
+                    displayText += ` (semantic match)`;
+                  }
+                  
+                  tagElement.textContent = displayText;
+                  
+                  // Add tooltip with context if available
+                  if (match.context) {
+                    tagElement.title = match.context;
+                  }
+                  
+                  tagsWrapper.appendChild(tagElement);
+                });
+                
+                tagsContainer.appendChild(tagsWrapper);
+                
+                // Add counters for different match types
+                const matchCounters = document.createElement('div');
+                matchCounters.style.margin = '15px 0';
+                matchCounters.innerHTML = `
+                  <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 5px;">
+                    <strong>Match breakdown:</strong> 
+                    ${data.direct_match_count || 0} exact matches, 
+                    ${data.partial_match_count || 0} partial matches, 
+                    ${data.semantic_match_count || 0} semantic matches
+                  </p>
+                `;
+                tagsContainer.appendChild(matchCounters);
+                
+                // Add legend
+                const legend = document.createElement('div');
+                legend.className = 'tag-legend';
+                legend.innerHTML = `
+                  <span class="match-tag query-exact-match">Exact query match</span>
+                  <span class="match-tag query-match">Similar to query</span>
+                  <span class="match-tag title-match">From title</span>
+                  <span class="match-tag description-match">From description</span>
+                `;
+                tagsContainer.appendChild(legend);
+              }
+              
+              // Add similarity score if available
+              if (data.similarity_score !== undefined) {
+                const scoreElement = document.createElement('div');
+                scoreElement.className = 'match-score';
+                
+                const scorePercent = (data.similarity_score * 100).toFixed(1);
+                let rating = 'Fair match';
+                if (data.similarity_score >= 0.8) rating = 'Excellent match';
+                else if (data.similarity_score >= 0.6) rating = 'Good match';
+                else if (data.similarity_score >= 0.4) rating = 'Moderate match';
+                
+                scoreElement.innerHTML = `
+                  <strong>Match score:</strong> ${scorePercent}% (${rating})
+                `;
+                tagsContainer.appendChild(scoreElement);
+              }
+            })
+            .catch(error => {
+              console.error("Error fetching explanation:", error);
+              tagsContainer.innerHTML = `
+                <p style="color: #ff6b6b;">Error fetching explanation: ${error.message}</p>
+              `;
+            });
+        }
+
+        // Function to display search results
+function displaySearchResults(results, query) {
+  const resultsContainer = document.getElementById('search-results');
+  resultsContainer.innerHTML = '';
+  
+  if (!results || results.length === 0) {
+    resultsContainer.innerHTML = '<p>No results found. Try a different search.</p>';
+    return;
+  }
+
+  // Add explanation section first
+  const explanationSection = document.createElement('div');
+  explanationSection.className = 'explanation-section';
+  explanationSection.innerHTML = `
+    <h3 style="color: white; margin-top: 0;">Why these were recommended:</h3>
+    <div id="explanation-tags"></div>
+  `;
+  resultsContainer.appendChild(explanationSection);
+  
+  // Display results list
+  const resultsList = document.createElement('div');
+  resultsList.className = 'results-list';
+  
+  results.forEach((result, index) => {
+    const resultItem = document.createElement('div');
+    resultItem.className = 'result-item';
+    resultItem.innerHTML = `
+      <h3>${result.title}</h3>
+      <div class="result-meta">
+        <span class="media-type">${result.media_type}</span>
+        ${result.genre ? `<span class="genre">${result.genre}</span>` : ''}
+        <span class="score">${(result.score * 100).toFixed(1)}% match</span>
+      </div>
+      <p class="description-truncated">${result.description?.substring(0, 150) || ''}${result.description?.length > 150 ? '...' : ''}</p>
+      ${result.description?.length > 150 ? 
+        `<div class="description-full" style="display:none;">${result.description}</div>
+         <span class="show-more-less" data-action="show-more">Show more</span>` : ''}
+    `;
+    
+    // Toggle show more/less
+    const showMoreLessBtn = resultItem.querySelector('.show-more-less');
+    if (showMoreLessBtn) {
+      showMoreLessBtn.addEventListener('click', (e) => {
+        const action = e.target.dataset.action;
+        const truncated = resultItem.querySelector('.description-truncated');
+        const full = resultItem.querySelector('.description-full');
+        
+        if (action === 'show-more') {
+          truncated.style.display = 'none';
+          full.style.display = 'block';
+          e.target.textContent = 'Show less';
+          e.target.dataset.action = 'show-less';
+        } else {
+          truncated.style.display = 'block';
+          full.style.display = 'none';
+          e.target.textContent = 'Show more';
+          e.target.dataset.action = 'show-more';
+        }
+        
+        e.stopPropagation(); // Prevent triggering the parent click
+      });
+    }
+    
+    // Make result clickable to show explanation
+    resultItem.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('show-more-less')) {
+        // Highlight selected item
+        document.querySelectorAll('.result-item').forEach(item => {
+          item.classList.remove('selected');
+        });
+        resultItem.classList.add('selected');
+        
+        // Fetch explanation for this result
+        fetchQueryExplanation(index, query);
+      }
+    });
+    
+    resultsList.appendChild(resultItem);
+  });
+  
+  resultsContainer.appendChild(resultsList);
+  
+  // Automatically select first result
+  if (results.length > 0) {
+    document.querySelector('.result-item').classList.add('selected');
+    fetchQueryExplanation(0, query); // Use index 0 for the first result
+  }
+}
+
+      </script>
+      
       <!-- pass information script -->
       <script>
       document.addEventListener('DOMContentLoaded', function() {
@@ -141,7 +597,7 @@
         synopsisForm.addEventListener('submit', function(e) {
           e.preventDefault();
           
-          const query = document.querySelector('textarea[name="synopsis"]').value;
+          const query = document.querySelector('textarea[name="query"]').value;
           
           if (!query) {
             alert('Please enter text to search');
@@ -172,30 +628,20 @@
           // Use the correct API URL based on environment
           const searchUrl = isLocalhost ? '/search' : `${apiBaseUrl}/search`;
           
-          // Log the request for debugging
-          console.log(`Sending request to: ${searchUrl}`);
-          console.log(`Query: ${query}`);
-          console.log(`Media Type: ${mediaType}`);
-          
           fetch(searchUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: `query=${encodeURIComponent(query)}&media_type=${encodeURIComponent(mediaType)}`,
-            credentials: 'include', // Include credentials like cookies if needed
-            mode: 'cors' // Enable CORS for cross-domain requests
+            credentials: 'include',
+            mode: 'cors'
           })
           .then(response => {
-            // Log response status for debugging
-            console.log(`Response status: ${response.status}`);
-            console.log(`Response headers:`, response.headers);
-            
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
               return response.json();
             } else {
-              // For more detailed error message
               return response.text().then(text => {
                 console.error('Non-JSON response:', text);
                 throw new Error('Server returned non-JSON response. Check the console for details.');
@@ -207,9 +653,6 @@
               document.getElementById('loading').remove();
             }
             
-            // Log data for debugging
-            console.log('Received data:', data);
-            
             if (data.error) {
               resultsContainer.innerHTML = `<div class="alert-error" style="color: #ff6b6b; padding: 15px; background-color: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); margin-bottom: 15px;">${data.error}</div>`;
               return;
@@ -219,6 +662,7 @@
               resultsContainer.innerHTML = `<div class="alert-info" style="color: #ffffff; padding: 15px; background-color: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); margin-bottom: 15px;">No recommendations found. Try a different search term.</div>`;
               return;
             }
+
             
             // Create a grid for results
             const resultsGrid = document.createElement('div');
@@ -227,34 +671,43 @@
             resultsGrid.style.gap = '20px';
             resultsGrid.style.marginTop = '20px';
             
-            data.results.forEach(result => {
+            data.results.forEach((result, index) => {
               const card = document.createElement('div');
               card.className = `media-card ${result.media_type || ''}`;
               card.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
               card.style.border = '1px solid rgba(255, 255, 255, 0.1)';
               card.style.padding = '20px';
-              card.style.display = 'flex';
-              card.style.flexDirection = 'column';
-              card.style.height = '250px'; // Fix card height for consistency
               
               const score = result.score ? Math.round(result.score * 100) : '?';
               
+              // Check if description needs truncation
+              const description = result.description || 'No description available';
+              const needsTruncation = description.length > 150;
+              const shortDesc = needsTruncation ? description.substring(0, 150) + '...' : description;
+              
               card.innerHTML = `
-                <div class="card-content" style="display: flex; flex-direction: column; height: 100%;">
+                <div class="card-content">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h3 style="margin: 0; color: white; font-size: 18px;">${result.title || 'Untitled'}</h3>
                      <span style="background-color: rgba(255, 255, 255, 0.2); color: white; padding: 4px 8px; font-size: 14px;">${score}% match</span>
-                   </div>
-                   <h4 style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 0; margin-bottom: 10px;">
-                     ${result.media_type ? (result.media_type.charAt(0).toUpperCase() + result.media_type.slice(1)) : 'Unknown'} 
-                     ${result.genre ? '| ' + result.genre : ''}
-                     ${result.rating !== undefined && result.rating !== null ? '| Rating: ' + result.rating.toFixed(1) + '/10' : ''}
-                   </h4>
-                   <div style="overflow-y: auto; flex-grow: 1; max-height: 150px; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05);">
-                     <p style="color: rgba(255, 255, 255, 0.9); font-size: 14px; line-height: 1.5; margin: 0; padding-right: 8px;">
-                       ${result.description || 'No description available'}
-                     </p>
-                   </div>
+                  </div>
+                  <h4 style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 0; margin-bottom: 10px;">
+                    ${result.media_type ? (result.media_type.charAt(0).toUpperCase() + result.media_type.slice(1)) : 'Unknown'} 
+                    ${result.genre ? '| ' + result.genre : ''}
+                    ${result.media_score ? '| Rating: ' + result.media_score.toFixed(1) + '/10' : ''}
+                  </h4>
+                  
+                  <!-- Description with expandable functionality -->
+                  <div class="description-container">
+                    <p id="desc-truncated-${index}" class="description-truncated">
+                      ${shortDesc}
+                      ${needsTruncation ? `<span class="show-more-less" onclick="toggleDescription(this, ${index})">Show more</span>` : ''}
+                    </p>
+                    <p id="desc-full-${index}" class="description-full">
+                      ${description}
+                      <span class="show-more-less" onclick="toggleDescription(this, ${index})">Show less</span>
+                    </p>
+                  </div>
                 </div>
               `;
               
@@ -262,6 +715,30 @@
             });
             
             resultsContainer.appendChild(resultsGrid);
+            
+            const explanationSection = document.createElement('div');
+            explanationSection.id = 'query-explanation';
+            explanationSection.className = 'explanation-section';
+
+            explanationSection.innerHTML = `
+              <h3 style="color: white; margin-top: 0;">Why these were recommended:</h3>
+              <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 5px;">
+                SVG tags matching your query:
+              </p>
+              <div id="explanation-tags" style="display: flex; flex-direction: column; margin-bottom: 20px;">
+                <div class="loading-indicator">Loading...</div>
+              </div>
+            `;
+
+            resultsContainer.appendChild(explanationSection);
+
+            // Fetch explanation data for the first result
+            if (data.results && data.results.length > 0) {
+              fetchQueryExplanation(0, query);
+            } else {
+              document.getElementById('explanation-tags').innerHTML = 
+                '<p>No results available to explain.</p>';
+            }
           })
           .catch(error => {
             console.error('Error details:', error);
