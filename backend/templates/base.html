@@ -91,18 +91,16 @@
         font-style: italic;
       }
       
-      /* Tag styling */
       .match-tag {
         display: inline-block;
         padding: 5px 10px;
         margin: 3px;
-        border-radius: 0px; /* Changed from border-radius: 16px; to make boxy */
+        border-radius: 0px; 
         font-size: 14px;
         transition: all 0.2s ease;
         cursor: default;
       }
       
-      /* Different tag types */
       .query-exact-match {
         background-color: rgba(120, 220, 255, 0.15);
         border: 1px solid rgba(120, 220, 255, 0.3);
@@ -292,7 +290,6 @@
       <script src="./static/assets/js/index.js"></script>
       
       <script>
-        // Function to toggle description visibility
         function toggleDescription(element, id) {
           const truncated = document.getElementById(`desc-truncated-${id}`);
           const full = document.getElementById(`desc-full-${id}`);
@@ -306,12 +303,10 @@
           }
         }
         
-        // This function will be used to fetch explanations for a specific result
         function fetchQueryExplanation(itemId, query) {
-          // Make sure itemId is an integer and query is a string
           if (typeof itemId !== 'number') {
             console.error('itemId must be a number:', itemId);
-            itemId = 0; // default to first item
+            itemId = 0; 
           }
           
           if (!query || typeof query !== 'string') {
@@ -322,12 +317,10 @@
           const tagsContainer = document.getElementById('explanation-tags');
           tagsContainer.innerHTML = '<div class="loading-indicator">Loading explanation...</div>';
           
-          // Get the base URL
           const baseUrl = window.location.origin;
           
           console.log(`Fetching explanation for item ID: ${itemId} with query: "${query}"`);
           
-          // Make sure to encode the query properly
           fetch(`${baseUrl}/explain?id=${itemId}&query=${encodeURIComponent(query)}`)
             .then(response => {
               if (!response.ok) {
@@ -338,7 +331,6 @@
             .then(data => {
               console.log("Explanation data received:", data);
               
-              // Clear loading indicator
               tagsContainer.innerHTML = '';
               
               if (data.error) {
@@ -346,7 +338,6 @@
                 return;
               }
               
-              // Display top keywords with updated styling
               if (data.top_keywords && data.top_keywords.length > 0) {
                 const keywordsSection = document.createElement('div');
                 keywordsSection.className = 'top-keywords-section';
@@ -364,12 +355,11 @@
                 data.top_keywords.forEach(keyword => {
                   const keywordTag = document.createElement('span');
                   
-                  // Use the same white box styling but with square corners
                   keywordTag.className = 'match-tag';
                   keywordTag.style.backgroundColor = 'rgba(255, 255, 255, 0.07)';
                   keywordTag.style.border = '1px solid rgba(255, 255, 255, 0.2)';
                   keywordTag.style.color = 'white';
-                  keywordTag.style.borderRadius = '0px'; // Make corners square instead of rounded
+                  keywordTag.style.borderRadius = '0px'; 
                   
                   keywordTag.textContent = keyword.keyword;
                   keywordsWrapper.appendChild(keywordTag);
@@ -378,16 +368,13 @@
                 keywordsSection.appendChild(keywordsWrapper);
                 tagsContainer.appendChild(keywordsSection);
               } else {
-                // Display a message if no keywords available
                 const noKeywordsMsg = document.createElement('p');
                 noKeywordsMsg.textContent = 'No keywords available for this search.';
                 noKeywordsMsg.style.color = 'rgba(255, 255, 255, 0.7)';
                 tagsContainer.appendChild(noKeywordsMsg);
               }
               
-              // Only display the matches section if we actually have matches
               if (data.matches && data.matches.length > 0) {
-                // Create header for explanation
                 const header = document.createElement('h4');
                 header.textContent = 'SVD tags matching your query:';
                 header.style.color = 'white';
@@ -395,15 +382,12 @@
                 header.style.marginBottom = '15px';
                 tagsContainer.appendChild(header);
                 
-                // Container for tags
                 const tagsWrapper = document.createElement('div');
                 tagsWrapper.className = 'tags-container';
                 
-                // Process the matches from the updated API response format
                 data.matches.forEach(match => {
                   const tagElement = document.createElement('span');
                   
-                  // Set class based on match properties
                   let tagClass = 'match-tag ';
                   
                   if (match.match_type === 'exact') {
@@ -418,7 +402,6 @@
                   
                   tagElement.className = tagClass;
                   
-                  // Display format: item_term (query_term)
                   let displayText = match.item_term;
                   if (match.query_term && match.query_term !== 'semantic concept') {
                     displayText += ` (from "${match.query_term}")`;
@@ -428,7 +411,6 @@
                   
                   tagElement.textContent = displayText;
                   
-                  // Add tooltip with context if available
                   if (match.context) {
                     tagElement.title = match.context;
                   }
@@ -438,7 +420,6 @@
                 
                 tagsContainer.appendChild(tagsWrapper);
                 
-                // Add counters for different match types
                 const matchCounters = document.createElement('div');
                 matchCounters.style.margin = '15px 0';
                 matchCounters.innerHTML = `
@@ -451,7 +432,6 @@
                 `;
                 tagsContainer.appendChild(matchCounters);
                 
-                // Add legend
                 const legend = document.createElement('div');
                 legend.className = 'tag-legend';
                 legend.innerHTML = `
@@ -463,7 +443,6 @@
                 tagsContainer.appendChild(legend);
               }
               
-              // Add similarity score if available
               if (data.similarity_score !== undefined) {
                 const scoreElement = document.createElement('div');
                 scoreElement.className = 'match-score';
@@ -488,7 +467,6 @@
             });
         }
 
-        // Function to display search results
 function displaySearchResults(results, query) {
   const resultsContainer = document.getElementById('search-results');
   resultsContainer.innerHTML = '';
@@ -498,7 +476,6 @@ function displaySearchResults(results, query) {
     return;
   }
 
-  // Add explanation section first
   const explanationSection = document.createElement('div');
   explanationSection.className = 'explanation-section';
   explanationSection.innerHTML = `
@@ -507,7 +484,6 @@ function displaySearchResults(results, query) {
   `;
   resultsContainer.appendChild(explanationSection);
   
-  // Display results list
   const resultsList = document.createElement('div');
   resultsList.className = 'results-list';
   
@@ -527,7 +503,6 @@ function displaySearchResults(results, query) {
          <span class="show-more-less" data-action="show-more">Show more</span>` : ''}
     `;
     
-    // Toggle show more/less
     const showMoreLessBtn = resultItem.querySelector('.show-more-less');
     if (showMoreLessBtn) {
       showMoreLessBtn.addEventListener('click', (e) => {
@@ -547,20 +522,17 @@ function displaySearchResults(results, query) {
           e.target.dataset.action = 'show-more';
         }
         
-        e.stopPropagation(); // Prevent triggering the parent click
+        e.stopPropagation(); 
       });
     }
     
-    // Make result clickable to show explanation
     resultItem.addEventListener('click', (e) => {
       if (!e.target.classList.contains('show-more-less')) {
-        // Highlight selected item
         document.querySelectorAll('.result-item').forEach(item => {
           item.classList.remove('selected');
         });
         resultItem.classList.add('selected');
         
-        // Fetch explanation for this result
         fetchQueryExplanation(index, query);
       }
     });
@@ -570,26 +542,22 @@ function displaySearchResults(results, query) {
   
   resultsContainer.appendChild(resultsList);
   
-  // Automatically select first result
   if (results.length > 0) {
     document.querySelector('.result-item').classList.add('selected');
-    fetchQueryExplanation(0, query); // Use index 0 for the first result
+    fetchQueryExplanation(0, query); 
   }
 }
 
       </script>
       
-      <!-- pass information script -->
       <script>
       document.addEventListener('DOMContentLoaded', function() {
       const synopsisForm = document.querySelector('form[action="/search"]');
       
       if (synopsisForm) {
-        // Update the form action to use the absolute URL if not on localhost
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const apiBaseUrl = isLocalhost ? '' : 'http://4300showcase.infosci.cornell.edu:5235/'; // Replace with your actual server domain
+        const apiBaseUrl = isLocalhost ? '' : 'http://4300showcase.infosci.cornell.edu:5235/'; 
         
-        // Update the form action attribute
         if (!isLocalhost) {
           synopsisForm.action = `${apiBaseUrl}/search`;
         }
@@ -625,7 +593,6 @@ function displaySearchResults(results, query) {
           
           const mediaType = document.querySelector('input[name="media_type"]:checked')?.value || 'all';
           
-          // Use the correct API URL based on environment
           const searchUrl = isLocalhost ? '/search' : `${apiBaseUrl}/search`;
           
           fetch(searchUrl, {
@@ -664,7 +631,6 @@ function displaySearchResults(results, query) {
             }
 
             
-            // Create a grid for results
             const resultsGrid = document.createElement('div');
             resultsGrid.style.display = 'grid';
             resultsGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
@@ -680,7 +646,6 @@ function displaySearchResults(results, query) {
               
               const score = result.score ? Math.round(result.score * 100) : '?';
               
-              // Check if description needs truncation
               const description = result.description || 'No description available';
               const needsTruncation = description.length > 150;
               const shortDesc = needsTruncation ? description.substring(0, 150) + '...' : description;

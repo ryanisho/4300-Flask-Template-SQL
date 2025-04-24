@@ -124,7 +124,6 @@ with open('./helpers/models/tfidf_svd_embeddings.pkl', 'rb') as f:
 with open('./helpers/models/embedding_pca.pkl', 'rb') as f:
     pca = pickle.load(f)
 
-# Use the better transformer model
 model_name = 'sentence-transformers/all-mpnet-base-v2'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModel.from_pretrained(model_name).to(device)
@@ -138,14 +137,9 @@ def generate_query_embedding(query):
     Generate embedding for a search query using the improved combined model
     with better transformer and weighted approach
     """
-    # Process for TF-IDF + SVD
     processed_query = preprocess_text(query)
     query_tfidf = vectorizer.transform([processed_query])
     query_tfidf_svd = svd.transform(query_tfidf)[0]
-
-    # Process for transformer - split into separate title-like and description-like components
-    # Title-like: use the entire query as is
-    # Description-like: use the entire query as is (in a real app, this might be more detailed)
     title_input = tokenizer(
         query,
         padding=True,
@@ -154,36 +148,30 @@ def generate_query_embedding(query):
         return_tensors='pt'
     ).to(device)
 
-    desc_input = title_input  # For simplicity, use the same input for both
+    desc_input = title_input 
 
     with torch.no_grad():
-        # Get title embedding
         title_output = model(**title_input)
         title_emb = mean_pooling(
             title_output, title_input['attention_mask']).cpu().numpy()[0]
 
-        # Get description embedding (would be different in a real app)
         desc_output = model(**desc_input)
         desc_emb = mean_pooling(
             desc_output, desc_input['attention_mask']).cpu().numpy()[0]
 
-    # Normalize embeddings
     query_tfidf_svd = query_tfidf_svd / \
         (np.linalg.norm(query_tfidf_svd) + 1e-8)
     title_emb = title_emb / (np.linalg.norm(title_emb) + 1e-8)
     desc_emb = desc_emb / (np.linalg.norm(desc_emb) + 1e-8)
 
-    # Weight the transformer embeddings (70% title, 30% description)
     weighted_transformer_emb = (title_emb * 0.7) + (desc_emb * 0.3)
     weighted_transformer_emb = weighted_transformer_emb / \
         (np.linalg.norm(weighted_transformer_emb) + 1e-8)
 
-    # Weight between TFIDF+SVD and transformer (30% TFIDF, 70% transformer)
     alpha = 0.7
     query_tfidf_svd = query_tfidf_svd * (1 - alpha)
     weighted_transformer_emb = weighted_transformer_emb * alpha
 
-    # Concatenate and transform with PCA
     concatenated = np.concatenate([query_tfidf_svd, weighted_transformer_emb])
     query_vector = pca.transform([concatenated])[0]
 
@@ -195,7 +183,6 @@ def index():
     return render_template('base.html')
 
 
-# Updated search function with more differentiated scores
 @app.route('/search', methods=['POST'])
 def search():
     query = request.form.get('query')
@@ -206,94 +193,71 @@ def search():
 
     query_vector = generate_query_embedding(query)
 
-    # Calculate base similarity scores
     cos_scores = [1 - cosine(query_vector, emb) for emb in embeddings]
 
-    # Apply media type filtering if specified
     if media_type != 'all':
         media_mask = df['media_type'] == media_type
         filtered_scores = [score if mask else 0 for score,
                            mask in zip(cos_scores, media_mask)]
         cos_scores = filtered_scores
 
-    # Get the top indices
     top_indices = np.argsort(-np.array(cos_scores))[:10]
 
-    # Get the maximum score for reference
     max_score = cos_scores[top_indices[0]] if len(top_indices) > 0 else 0.0
 
-    # Create a unique adjustment factor for each rank
-    # Base adjustment factors (as percentage of top score)
     base_adjustments = [
-        1.00,  # 1st item: 100% of top score
-        0.92,  # 2nd item: 92% of top score
-        0.87,  # 3rd item: 87% of top score
-        0.83,  # 4th item: 83% of top score
-        0.79,  # 5th item: 79% of top score
-        0.76,  # 6th item: 76% of top score
-        0.73,  # 7th item: 73% of top score
-        0.70,  # 8th item: 70% of top score
-        0.67,  # 9th item: 67% of top score
-        0.64   # 10th item: 64% of top score
+        1.00,  
+        0.92,  
+        0.87,  
+        0.83,  
+        0.79,  
+        0.76,  
+        0.73,  
+        0.70,  
+        0.67,  
+        0.64   
     ]
 
     results = []
     for i, idx in enumerate(top_indices):
-        # Skip any zero scores (filtered out by media type)
         if cos_scores[idx] == 0:
             continue
 
-        # Apply individual non-linear boosting first
         original_score = cos_scores[idx]
         if original_score > 0.5:
             boosted_score = 1.0 - ((1.0 - original_score)
-                                   ** 1.5)  # Boost high scores
+                                   ** 1.5)  
         else:
-            boosted_score = original_score * 0.95  # Slightly lower poor scores
+            boosted_score = original_score * 0.95  
 
-        # Get the adjustment factor for this rank
         adjustment_factor = base_adjustments[i] if i < len(
             base_adjustments) else 0.60
 
-        # Calculate the rank-adjusted score
         rank_adjusted_score = max_score * adjustment_factor
 
-        # Use original score influence based on its quality
-        # Higher original scores should have more influence on final score
-        if original_score > 0.7:  # Very good match
-            # Strong original matches get more weight from their original score
+        if original_score > 0.7:  
             original_weight = 0.6
             rank_weight = 0.4
-        elif original_score > 0.5:  # Good match
-            # Good matches get balanced weighting
+        elif original_score > 0.5: 
             original_weight = 0.5
             rank_weight = 0.5
-        elif original_score > 0.3:  # Moderate match
-            # Moderate matches lean more on rank adjustment
+        elif original_score > 0.3:  
             original_weight = 0.3
             rank_weight = 0.7
-        else:  # Poor match
-            # Poor matches mostly use rank adjustment
+        else:  
             original_weight = 0.2
             rank_weight = 0.8
 
-        # Blend boosted score with rank adjustment
         final_score = (boosted_score * original_weight) + \
             (rank_adjusted_score * rank_weight)
 
-        # Add small random variation to prevent exact same scores (0-1% difference)
-        if i > 0:  # Don't modify the top score
-            # Random value between -0.005 and +0.005
+        if i > 0:  
             variation = 0.01 * (0.5 - np.random.random())
-            # Keep between 0-1
             final_score = max(0, min(1, final_score + variation))
 
-        # Safety check: avoid inflating very poor matches
         if original_score < 0.3 and final_score > 0.5:
-            # If original score was very low, cap the boost
             final_score = min(final_score, 0.5)
 
-        # Round to 2 decimal places for display
         final_score = round(final_score, 2)
 
         results.append({
@@ -301,7 +265,6 @@ def search():
             'media_type': df.iloc[idx]['media_type'],
             'genre': df.iloc[idx]['genre'],
             'description': df.iloc[idx]['description'],
-            # Include the original media rating score
             'media_score': float(df.iloc[idx]['score']),
             'score': float(final_score)
         })
@@ -327,20 +290,16 @@ def explain_recommendation():
     except (ValueError, IndexError):
         return jsonify({'error': 'Invalid item ID'})
 
-    # Initialize stemmer and stop words
     stemmer = PorterStemmer()
     stop_words = set(stopwords.words('english'))
 
-    # Additional common words to filter out
     generic_terms = {'thing', 'make', 'look', 'just', 'like', 'know', 'time',
                      'good', 'really', 'great', 'way', 'find', 'part', 'take',
                      'much', 'even', 'first', 'new', 'one', 'two', 'many', 'also',
                      'get', 'use', 'may', 'well', 'come', 'give', 'every', 'day',
                      'year', 'back', 'today', 'lets', 'going', 'best'}
 
-    # Process query into clean terms
     query_terms = []
-    # Use word_tokenize for better tokenization
     for word in word_tokenize(query.lower()):
         if len(word) > 2 and word.isalpha() and word not in stop_words and word not in generic_terms:
             stemmed = stemmer.stem(word)
@@ -349,7 +308,6 @@ def explain_recommendation():
                 'stemmed': stemmed
             })
 
-    # Extract terms from the item title
     title_terms = []
     for word in word_tokenize(item['title'].lower()):
         if len(word) > 2 and word.isalpha() and word not in stop_words and word not in generic_terms:
@@ -361,7 +319,6 @@ def explain_recommendation():
                 'context': item['title']
             })
 
-    # Extract terms from the item description
     desc_terms = []
     if isinstance(item['description'], str):
         for word in word_tokenize(item['description'].lower()):
@@ -376,13 +333,11 @@ def explain_recommendation():
 
     item_terms = title_terms + desc_terms
 
-    # Find direct matching terms between query and item
     direct_matches = []
-    matched_stems = set()  # Track matched stems to avoid duplicates
+    matched_stems = set() 
 
     for query_term in query_terms:
         for item_term in item_terms:
-            # Check if stems match
             if query_term['stemmed'] == item_term['stemmed']:
                 if item_term['stemmed'] in matched_stems:
                     continue
@@ -398,7 +353,6 @@ def explain_recommendation():
 
                 matched_stems.add(item_term['stemmed'])
 
-    # Find partial/substring matches
     partial_matches = []
     for query_term in query_terms:
         for item_term in item_terms:
@@ -416,31 +370,25 @@ def explain_recommendation():
                 })
                 matched_stems.add(item_term['stemmed'])
 
-    # Find semantic matches using our embedding model
     semantic_matches = []
     if len(direct_matches) + len(partial_matches) < 5:
         semantic_matches = find_semantic_matches(
             query, item, query_terms, item_terms, matched_stems)
 
-    # Combine all matches and sort by importance
     all_matches = direct_matches + partial_matches + semantic_matches
     all_matches.sort(key=lambda x: x['importance'], reverse=True)
 
-    # Limit to top 15 matches
     all_matches = all_matches[:15]
 
-    # Calculate overall similarity score
     query_vector = generate_query_embedding(query)
     item_vector = embeddings[item_id]
     similarity = float(1 - cosine(query_vector, item_vector))
     similarity = round(similarity, 3)
 
-    # Format response
     explanation = {
         'query': query,
     }
 
-    # Extract top 10 related keywords from top results
     top_result_indices = np.argsort(
         -np.array([1 - cosine(query_vector, emb) for emb in embeddings]))[:10]
     all_descriptions = df['description'].fillna('').tolist()
@@ -468,7 +416,6 @@ def get_word_context(word, text, window=20):
     end = min(len(text), word_pos + len(word) + window)
 
     context = text[start:end]
-    # Add ellipsis if we're not showing the full text
     if start > 0:
         context = "..." + context
     if end < len(text):
@@ -479,15 +426,12 @@ def get_word_context(word, text, window=20):
 
 def is_substring_match(word1, word2):
     """Check if two words have a substring relationship or are very similar"""
-    # Skip if either is too short
     if len(word1) < 4 or len(word2) < 4:
         return False
 
-    # One is substring of the other
     if word1 in word2 or word2 in word1:
         return True
 
-    # Plural forms
     if word1 + 's' == word2 or word1 == word2 + 's':
         return True
     if word1 + 'es' == word2 or word1 == word2 + 'es':
@@ -500,24 +444,19 @@ def find_semantic_matches(query, item, query_terms, item_terms, matched_stems):
     """Find semantic matches between query and item using the embedding model"""
     semantic_matches = []
 
-    # Get top important terms using SVD components
     processed_query = preprocess_text(query)
     query_tfidf = vectorizer.transform([processed_query])
     query_svd = svd.transform(query_tfidf)[0]
 
-    # Get item embeddings
     item_title_processed = preprocess_text(item['title'])
     item_tfidf = vectorizer.transform([item_title_processed])
     item_svd = svd.transform(item_tfidf)[0]
 
-    # Get top dimensions where query and item align
     query_top_dims = np.argsort(-np.abs(query_svd))[:5]
     item_top_dims = np.argsort(-np.abs(item_svd))[:5]
 
-    # Find overlapping important dimensions
     overlapping_dims = set(query_top_dims).intersection(set(item_top_dims))
 
-    # Use up to 3 top overlapping dimensions
     for dim_idx in list(overlapping_dims)[:3]:
         component = svd.components_[dim_idx]
         feature_names = vectorizer.get_feature_names_out()
@@ -536,7 +475,6 @@ def find_semantic_matches(query, item, query_terms, item_terms, matched_stems):
             if stemmed_term in matched_stems:
                 continue
 
-            # Check if term appears in item content
             for item_term in item_terms:
                 if stemmed_term == item_term['stemmed']:
                     semantic_matches.append({

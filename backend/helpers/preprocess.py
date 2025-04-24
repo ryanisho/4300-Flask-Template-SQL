@@ -89,15 +89,11 @@ def load_and_clean_data():
 
     combined_df['description'] = combined_df['description'].fillna('')
     combined_df['genre'] = combined_df['genre'].fillna('')
-    combined_df['score'] = combined_df['score'].fillna(
-        5.0)  # Default middle score for missing values
+    combined_df['score'] = combined_df['score'].fillna(5.0)
 
-    # Ensure all scores are on a 0-10 scale
     combined_df['score'] = pd.to_numeric(
         combined_df['score'], errors='coerce').fillna(5.0)
 
-    # Normalize scores to 0-10 range if needed
-    # (This assumes all scores are already in a similar range, adjust as needed)
     combined_df.loc[combined_df['score'] > 10, 'score'] = 10.0
     combined_df.loc[combined_df['score'] < 0, 'score'] = 0.0
 
@@ -130,17 +126,15 @@ def preprocess_text(text):
 def create_tfidf_svd_embeddings(df, n_components=300):
     print("Creating TF-IDF embeddings with SVD...")
 
-    # Emphasize title more by repeating it
     df['combined_text'] = df['title'] + " " + \
         df['title'] + " " + df['description']
     df['processed_text'] = [preprocess_text(
         text) for text in tqdm(df['combined_text'])]
 
-    # Increase max_features for more vocabulary coverage
     tfidf_vectorizer = TfidfVectorizer(
-        max_features=10000,  # Increased from 5000
-        min_df=2,            # Reduced from 3 to capture more rare terms
-        max_df=0.95,         # Increased from 0.9 to include more common terms
+        max_features=10000,
+        min_df=2,
+        max_df=0.95,
         sublinear_tf=True
     )
 
@@ -177,17 +171,14 @@ def mean_pooling(model_output, attention_mask):
 def create_bert_embeddings(df, batch_size=16, max_length=512):
     print("Creating BERT embeddings with improved model...")
 
-    # Use a better transformer model - mpnet has better semantic understanding
     model_name = "sentence-transformers/all-mpnet-base-v2"
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModel.from_pretrained(model_name).to(device)
 
-    # Process titles and descriptions separately to apply different weights
     df['title_text'] = df['title']
     df['desc_text'] = df['description']
 
-    # Process titles
     print("Processing titles...")
     title_embeddings = []
     for i in tqdm(range(0, len(df), batch_size)):
@@ -208,7 +199,6 @@ def create_bert_embeddings(df, batch_size=16, max_length=512):
             model_output, encoded_input['attention_mask']).cpu().numpy()
         title_embeddings.extend(batch_embs.tolist())
 
-    # Process descriptions
     print("Processing descriptions...")
     desc_embeddings = []
     for i in tqdm(range(0, len(df), batch_size)):
@@ -234,14 +224,11 @@ def create_bert_embeddings(df, batch_size=16, max_length=512):
         title_emb = np.array(title_embeddings[i])
         desc_emb = np.array(desc_embeddings[i])
 
-        # Normalize
         title_emb = title_emb / (np.linalg.norm(title_emb) + 1e-8)
         desc_emb = desc_emb / (np.linalg.norm(desc_emb) + 1e-8)
 
-        # Weighted combination (70% title, 30% description)
         weighted_emb = (title_emb * 0.6) + (desc_emb * 0.4)
 
-        # Normalize again
         weighted_emb = weighted_emb / (np.linalg.norm(weighted_emb) + 1e-8)
 
         combined_embeddings.append(weighted_emb.tolist())
@@ -251,7 +238,6 @@ def create_bert_embeddings(df, batch_size=16, max_length=512):
     return df
 
 
-# Increased BERT weight from 0.5 to 0.7
 def create_combined_embeddings(df, alpha=0.7):
     tfidf_svd_dim = len(df['tfidf_svd_embedding'].iloc[0])
     bert_dim = len(df['bert_embedding'].iloc[0])
@@ -264,20 +250,17 @@ def create_combined_embeddings(df, alpha=0.7):
         tfidf_svd_emb = np.array(df['tfidf_svd_embedding'].iloc[i])
         bert_emb = np.array(df['bert_embedding'].iloc[i])
 
-        # Normalize
         tfidf_svd_emb = tfidf_svd_emb / (np.linalg.norm(tfidf_svd_emb) + 1e-8)
         bert_emb = bert_emb / (np.linalg.norm(bert_emb) + 1e-8)
 
-        # Apply weights - more weight to BERT for better semantic matching
-        tfidf_svd_emb = tfidf_svd_emb * (1 - alpha)  # 30% weight
-        bert_emb = bert_emb * alpha  # 70% weight
+        tfidf_svd_emb = tfidf_svd_emb * (1 - alpha)
+        bert_emb = bert_emb * alpha
 
         concatenated = np.concatenate([tfidf_svd_emb, bert_emb])
         all_concatenated.append(concatenated)
 
     all_concatenated = np.array(all_concatenated)
 
-    # Increase dimensions for better information preservation
     final_dim = 768
     pca = PCA(n_components=final_dim)
     reduced_embeddings = pca.fit_transform(all_concatenated)
