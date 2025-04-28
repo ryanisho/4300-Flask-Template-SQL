@@ -148,7 +148,7 @@ def generate_query_embedding(query):
         return_tensors='pt'
     ).to(device)
 
-    desc_input = title_input 
+    desc_input = title_input
 
     with torch.no_grad():
         title_output = model(**title_input)
@@ -206,16 +206,16 @@ def search():
     max_score = cos_scores[top_indices[0]] if len(top_indices) > 0 else 0.0
 
     base_adjustments = [
-        1.00,  
-        0.92,  
-        0.87,  
-        0.83,  
-        0.79,  
-        0.76,  
-        0.73,  
-        0.70,  
-        0.67,  
-        0.64   
+        1.00,
+        0.92,
+        0.87,
+        0.83,
+        0.79,
+        0.76,
+        0.73,
+        0.70,
+        0.67,
+        0.64
     ]
 
     results = []
@@ -226,32 +226,32 @@ def search():
         original_score = cos_scores[idx]
         if original_score > 0.5:
             boosted_score = 1.0 - ((1.0 - original_score)
-                                   ** 1.5)  
+                                   ** 1.5)
         else:
-            boosted_score = original_score * 0.95  
+            boosted_score = original_score * 0.95
 
         adjustment_factor = base_adjustments[i] if i < len(
             base_adjustments) else 0.60
 
         rank_adjusted_score = max_score * adjustment_factor
 
-        if original_score > 0.7:  
+        if original_score > 0.7:
             original_weight = 0.6
             rank_weight = 0.4
-        elif original_score > 0.5: 
+        elif original_score > 0.5:
             original_weight = 0.5
             rank_weight = 0.5
-        elif original_score > 0.3:  
+        elif original_score > 0.3:
             original_weight = 0.3
             rank_weight = 0.7
-        else:  
+        else:
             original_weight = 0.2
             rank_weight = 0.8
 
         final_score = (boosted_score * original_weight) + \
             (rank_adjusted_score * rank_weight)
 
-        if i > 0:  
+        if i > 0:
             variation = 0.01 * (0.5 - np.random.random())
             final_score = max(0, min(1, final_score + variation))
 
@@ -266,7 +266,8 @@ def search():
             'genre': df.iloc[idx]['genre'],
             'description': df.iloc[idx]['description'],
             'media_score': float(df.iloc[idx]['score']),
-            'score': float(final_score)
+            'score': float(final_score),
+            'review': df.iloc[idx]['single_review'],
         })
 
     return jsonify({'results': results})
@@ -334,7 +335,7 @@ def explain_recommendation():
     item_terms = title_terms + desc_terms
 
     direct_matches = []
-    matched_stems = set() 
+    matched_stems = set()
 
     for query_term in query_terms:
         for item_term in item_terms:
@@ -397,8 +398,6 @@ def explain_recommendation():
 
     explanation['top_keywords'] = [
         {'keyword': k, 'score': s} for k, s in keyword_tags]
-
-    print(explanation)
 
     return jsonify(explanation)
 

@@ -18,16 +18,19 @@
         margin-top: 12px;
         margin-bottom: 20px;
       }
+
       .filter-option {
         position: relative;
         display: inline-block;
       }
+
       .filter-option input[type="radio"] {
         position: absolute;
         opacity: 0;
         width: 0;
         height: 0;
       }
+
       .filter-option label {
         display: inline-block;
         padding: 8px 16px;
@@ -36,16 +39,19 @@
         cursor: pointer;
         transition: all 0.2s ease;
       }
-      .filter-option input[type="radio"]:checked + label {
+
+      .filter-option input[type="radio"]:checked+label {
         background-color: rgba(255, 255, 255, 0.1);
         border-color: rgba(255, 255, 255, 1);
         color: white;
       }
+
       .filter-option label:hover {
         background-color: rgba(255, 255, 255, 0.05);
         border-color: rgba(255, 255, 255, 0.8);
         color: white;
       }
+
       .match-term {
         display: inline-block;
         margin: 4px;
@@ -60,85 +66,91 @@
         hyphens: auto;
         line-height: 1.4;
       }
+
       .description-truncated {
         color: rgba(255, 255, 255, 0.9);
         font-size: 14px;
         line-height: 1.5;
         margin-bottom: 5px;
       }
+
       .description-full {
         color: rgba(255, 255, 255, 0.9);
         font-size: 14px;
         line-height: 1.5;
         display: none;
       }
+
       .show-more-less {
         color: rgba(255, 255, 255, 0.6);
         text-decoration: underline;
         font-size: 12px;
         cursor: pointer;
       }
+
       .media-card {
         position: relative;
         transition: transform 0.3s ease;
       }
+
       .media-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
       }
+
       .loading-indicator {
         color: rgba(255, 255, 255, 0.7);
         font-style: italic;
       }
-      
+
       .match-tag {
         display: inline-block;
         padding: 5px 10px;
         margin: 3px;
-        border-radius: 0px; 
+        border-radius: 0px;
         font-size: 14px;
         transition: all 0.2s ease;
         cursor: default;
       }
-      
+
       .query-exact-match {
         background-color: rgba(120, 220, 255, 0.15);
         border: 1px solid rgba(120, 220, 255, 0.3);
         color: rgb(180, 235, 255);
       }
-      
+
       .query-match {
         background-color: rgba(120, 180, 255, 0.12);
         border: 1px solid rgba(120, 180, 255, 0.25);
         color: rgb(160, 200, 255);
       }
-      
+
       .title-match {
         background-color: rgba(255, 215, 0, 0.15);
         border: 1px solid rgba(255, 215, 0, 0.3);
         color: rgb(255, 230, 150);
       }
-      
+
       .description-match {
         background-color: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         color: rgb(220, 220, 220);
       }
-      
+
       .tags-container {
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
         margin-bottom: 15px;
       }
-      
+
       .explanation-section {
         background-color: rgba(0, 0, 0, 0.3);
         border-radius: 8px;
         padding: 20px;
         margin-top: 20px;
       }
-      
+
       .tag-legend {
         margin-top: 15px;
         font-size: 12px;
@@ -147,7 +159,7 @@
         flex-wrap: wrap;
         gap: 10px;
       }
-      
+
       .match-score {
         background-color: rgba(255, 255, 255, 0.07);
         padding: 10px;
@@ -219,14 +231,12 @@
             </div>
             <h1 class="f-100">with MediaMatch.</h1>
             <div class="h-hero-p">
-                <p class="f-30">Discover your next favorite stories across all media with personalized recommendations.</p>
-                <br>
-                <p>*Based on your unique preferences.</p>
-                <div class="input-wrapper" style="margin-top: 30px; margin-bottom: 30px;">
-                    <form action="/search" method="post">
-                      <textarea 
-                        placeholder="Enter a synopsis to discover similar content..." 
-                        style="width: 100%; 
+              <p class="f-30">Discover your next favorite stories across all media with personalized recommendations.</p>
+              <br>
+              <p>*Based on your unique preferences.</p>
+              <div class="input-wrapper" style="margin-top: 30px; margin-bottom: 30px;">
+                <form action="/search" method="post">
+                  <textarea placeholder="Enter a synopsis to discover similar content..." style="width: 100%; 
                         padding: 18px; 
                         border-radius: 0px; /* Square corners */
                         background-color: rgba(255, 255, 255, 0.03); 
@@ -236,34 +246,28 @@
                         min-height: 120px;
                         transition: all 0.3s ease;
                         resize: vertical;
-                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
-                        onfocus="this.style.borderColor='rgba(255, 255, 255, 1)'; this.style.boxShadow='0 4px 20px rgba(255, 255, 255, 0.15)';" 
-                        onblur="this.style.borderColor='rgba(255, 255, 255, 0.7)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.1)';"
-                        name="query"></textarea>
-                      
-                      <div class="filter-group">
-                        <p style="width: 100%; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">Filter by media type:</p>
-                        <div class="filter-option">
-                          <input type="radio" id="all" name="media_type" value="all" checked>
-                          <label for="all">All Media</label>
-                        </div>
-                        <div class="filter-option">
-                          <input type="radio" id="book" name="media_type" value="book">
-                          <label for="book">Books Only</label>
-                        </div>
-                        <div class="filter-option">
-                          <input type="radio" id="movie" name="media_type" value="movie">
-                          <label for="movie">Movies Only</label>
-                        </div>
-                        <div class="filter-option">
-                          <input type="radio" id="game" name="media_type" value="game">
-                          <label for="game">Games Only</label>
-                        </div>
-                      </div>
-                      
-                      <div style="display: flex; justify-content: flex-start; margin-top: 12px;">
-                        <button type="submit" 
-                        style="padding: 12px 24px; 
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);" onfocus="this.style.borderColor='rgba(255, 255, 255, 1)'; this.style.boxShadow='0 4px 20px rgba(255, 255, 255, 0.15)';" onblur="this.style.borderColor='rgba(255, 255, 255, 0.7)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.1)';" name="query"></textarea>
+                  <div class="filter-group">
+                    <p style="width: 100%; margin-bottom: 8px; color: rgba(255, 255, 255, 0.9);">Filter by media type:</p>
+                    <div class="filter-option">
+                      <input type="radio" id="all" name="media_type" value="all" checked>
+                      <label for="all">All Media</label>
+                    </div>
+                    <div class="filter-option">
+                      <input type="radio" id="book" name="media_type" value="book">
+                      <label for="book">Books Only</label>
+                    </div>
+                    <div class="filter-option">
+                      <input type="radio" id="movie" name="media_type" value="movie">
+                      <label for="movie">Movies Only</label>
+                    </div>
+                    <div class="filter-option">
+                      <input type="radio" id="game" name="media_type" value="game">
+                      <label for="game">Games Only</label>
+                    </div>
+                  </div>
+                  <div style="display: flex; justify-content: flex-start; margin-top: 12px;">
+                    <button type="submit" style="padding: 12px 24px; 
                         background-color: transparent; /* Transparent background */
                         color: white; 
                         border: 2px solid rgba(255, 255, 255, 0.7); /* White outline */
@@ -271,100 +275,77 @@
                         font-weight: 500;
                         cursor: pointer;
                         transition: all 0.2s ease;
-                        float: left;"
-                        onmouseover="this.style.backgroundColor='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(255, 255, 255, 1)';" 
-                        onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='rgba(255, 255, 255, 0.7)';">
-                        Get Recommendations
-                        </button>
-                      </div>
-                    </form>
+                        float: left;" onmouseover="this.style.backgroundColor='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(255, 255, 255, 1)';" onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='rgba(255, 255, 255, 0.7)';"> Get Recommendations </button>
                   </div>
-               
+                </form>
               </div>
-              <div class="h-hero-btn">
+            </div>
+            <div class="h-hero-btn"></div>
           </div>
         </div>
-      </div>
-      <div class="padding-top padding-120"></div>
-      <script src="./static/assets/js/gsap.min.js"></script>
-      <script src="./static/assets/js/index.js"></script>
-      
-      <script>
-        function toggleDescription(element, id) {
-          const truncated = document.getElementById(`desc-truncated-${id}`);
-          const full = document.getElementById(`desc-full-${id}`);
-          
-          if (truncated.style.display === 'none') {
-            truncated.style.display = 'block';
-            full.style.display = 'none';
-          } else {
-            truncated.style.display = 'none';
-            full.style.display = 'block';
-          }
-        }
-        
-        function fetchQueryExplanation(itemId, query) {
-          if (typeof itemId !== 'number') {
-            console.error('itemId must be a number:', itemId);
-            itemId = 0; 
-          }
-          
-          if (!query || typeof query !== 'string') {
-            console.error('Invalid query:', query);
-            return;
+        <div class="padding-top padding-120"></div>
+        <script src="./static/assets/js/gsap.min.js"></script>
+        <script src="./static/assets/js/index.js"></script>
+        <script>
+          function toggleDescription(element, id) {
+            const truncated = document.getElementById(`desc-truncated-${id}`);
+            const full = document.getElementById(`desc-full-${id}`);
+            if (truncated.style.display === 'none') {
+              truncated.style.display = 'block';
+              full.style.display = 'none';
+            } else {
+              truncated.style.display = 'none';
+              full.style.display = 'block';
+            }
           }
 
-          const tagsContainer = document.getElementById('explanation-tags');
-          tagsContainer.innerHTML = '<div class="loading-indicator">Loading explanation...</div>';
-          
-          const baseUrl = window.location.origin;
-          
-          console.log(`Fetching explanation for item ID: ${itemId} with query: "${query}"`);
-          
-          fetch(`${baseUrl}/explain?id=${itemId}&query=${encodeURIComponent(query)}`)
-            .then(response => {
+          function fetchQueryExplanation(itemId, query) {
+            if (typeof itemId !== 'number') {
+              console.error('itemId must be a number:', itemId);
+              itemId = 0;
+            }
+            if (!query || typeof query !== 'string') {
+              console.error('Invalid query:', query);
+              return;
+            }
+            const tagsContainer = document.getElementById('explanation-tags');
+            tagsContainer.innerHTML = ' < div class = "loading-indicator" > Loading explanation... < /div>';
+            const baseUrl = window.location.origin;
+            console.log(`Fetching explanation for item ID: ${itemId} with query: "${query}"`);
+            fetch(`${baseUrl}/explain?id=${itemId}&query=${encodeURIComponent(query)}`).then(response => {
               if (!response.ok) {
                 throw new Error(`Server returned ${response.status}: ${response.statusText}`);
               }
               return response.json();
-            })
-            .then(data => {
+            }).then(data => {
               console.log("Explanation data received:", data);
-              
               tagsContainer.innerHTML = '';
-              
               if (data.error) {
-                tagsContainer.innerHTML = `<p style="color: #ff6b6b;">Error: ${data.error}</p>`;
+                tagsContainer.innerHTML = `
+																		<p style="color: #ff6b6b;">Error: ${data.error}</p>`;
                 return;
               }
-              
               if (data.top_keywords && data.top_keywords.length > 0) {
                 const keywordsSection = document.createElement('div');
                 keywordsSection.className = 'top-keywords-section';
                 keywordsSection.style.marginBottom = '20px';
-                
                 const keywordsHeader = document.createElement('h4');
                 keywordsHeader.style.color = 'white';
                 keywordsHeader.style.marginTop = '0';
                 keywordsHeader.style.marginBottom = '15px';
                 keywordsSection.appendChild(keywordsHeader);
-                
                 const keywordsWrapper = document.createElement('div');
                 keywordsWrapper.className = 'tags-container';
-                
                 data.top_keywords.forEach(keyword => {
                   const keywordTag = document.createElement('span');
-                  
                   keywordTag.className = 'match-tag';
                   keywordTag.style.backgroundColor = 'rgba(255, 255, 255, 0.07)';
                   keywordTag.style.border = '1px solid rgba(255, 255, 255, 0.2)';
                   keywordTag.style.color = 'white';
-                  keywordTag.style.borderRadius = '0px'; 
-                  
+                  keywordTag.style.borderRadius = '0px';
                   keywordTag.textContent = keyword.keyword;
                   keywordsWrapper.appendChild(keywordTag);
                 });
-                
                 keywordsSection.appendChild(keywordsWrapper);
                 tagsContainer.appendChild(keywordsSection);
               } else {
@@ -373,7 +354,6 @@
                 noKeywordsMsg.style.color = 'rgba(255, 255, 255, 0.7)';
                 tagsContainer.appendChild(noKeywordsMsg);
               }
-              
               if (data.matches && data.matches.length > 0) {
                 const header = document.createElement('h4');
                 header.textContent = 'SVD tags matching your query:';
@@ -381,15 +361,11 @@
                 header.style.marginTop = '20px';
                 header.style.marginBottom = '15px';
                 tagsContainer.appendChild(header);
-                
                 const tagsWrapper = document.createElement('div');
                 tagsWrapper.className = 'tags-container';
-                
                 data.matches.forEach(match => {
                   const tagElement = document.createElement('span');
-                  
                   let tagClass = 'match-tag ';
-                  
                   if (match.match_type === 'exact') {
                     tagClass += 'query-exact-match';
                   } else if (match.match_type === 'stem' || match.match_type === 'substring') {
@@ -399,339 +375,335 @@
                   } else {
                     tagClass += 'description-match';
                   }
-                  
                   tagElement.className = tagClass;
-                  
                   let displayText = match.item_term;
                   if (match.query_term && match.query_term !== 'semantic concept') {
                     displayText += ` (from "${match.query_term}")`;
                   } else if (match.match_type === 'semantic') {
                     displayText += ` (semantic match)`;
                   }
-                  
                   tagElement.textContent = displayText;
-                  
                   if (match.context) {
                     tagElement.title = match.context;
                   }
-                  
                   tagsWrapper.appendChild(tagElement);
                 });
-                
                 tagsContainer.appendChild(tagsWrapper);
-                
                 const matchCounters = document.createElement('div');
                 matchCounters.style.margin = '15px 0';
                 matchCounters.innerHTML = `
-                  <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 5px;">
-                    <strong>Match breakdown:</strong> 
+                  
+																		<p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 5px;">
+																			<strong>Match breakdown:</strong> 
                     ${data.direct_match_count || 0} exact matches, 
                     ${data.partial_match_count || 0} partial matches, 
                     ${data.semantic_match_count || 0} semantic matches
-                  </p>
+                  
+																		</p>
                 `;
                 tagsContainer.appendChild(matchCounters);
-                
                 const legend = document.createElement('div');
                 legend.className = 'tag-legend';
                 legend.innerHTML = `
-                  <span class="match-tag query-exact-match">Exact query match</span>
-                  <span class="match-tag query-match">Similar to query</span>
-                  <span class="match-tag title-match">From title</span>
-                  <span class="match-tag description-match">From description</span>
+                  
+																		<span class="match-tag query-exact-match">Exact query match</span>
+																		<span class="match-tag query-match">Similar to query</span>
+																		<span class="match-tag title-match">From title</span>
+																		<span class="match-tag description-match">From description</span>
                 `;
                 tagsContainer.appendChild(legend);
               }
-              
               if (data.similarity_score !== undefined) {
                 const scoreElement = document.createElement('div');
                 scoreElement.className = 'match-score';
-                
                 const scorePercent = (data.similarity_score * 100).toFixed(1);
                 let rating = 'Fair match';
                 if (data.similarity_score >= 0.8) rating = 'Excellent match';
                 else if (data.similarity_score >= 0.6) rating = 'Good match';
                 else if (data.similarity_score >= 0.4) rating = 'Moderate match';
-                
                 scoreElement.innerHTML = `
-                  <strong>Match score:</strong> ${scorePercent}% (${rating})
+                  
+																		<strong>Match score:</strong> ${scorePercent}% (${rating})
                 `;
                 tagsContainer.appendChild(scoreElement);
               }
-            })
-            .catch(error => {
+            }).catch(error => {
               console.error("Error fetching explanation:", error);
               tagsContainer.innerHTML = `
-                <p style="color: #ff6b6b;">Error fetching explanation: ${error.message}</p>
+                
+																		<p style="color: #ff6b6b;">Error fetching explanation: ${error.message}</p>
               `;
             });
-        }
-
-function displaySearchResults(results, query) {
-  const resultsContainer = document.getElementById('search-results');
-  resultsContainer.innerHTML = '';
-  
-  if (!results || results.length === 0) {
-    resultsContainer.innerHTML = '<p>No results found. Try a different search.</p>';
-    return;
-  }
-
-  const explanationSection = document.createElement('div');
-  explanationSection.className = 'explanation-section';
-  explanationSection.innerHTML = `
-    <h3 style="color: white; margin-top: 0;">Why these were recommended:</h3>
-    <div id="explanation-tags"></div>
-  `;
-  resultsContainer.appendChild(explanationSection);
-  
-  const resultsList = document.createElement('div');
-  resultsList.className = 'results-list';
-  
-  results.forEach((result, index) => {
-    const resultItem = document.createElement('div');
-    resultItem.className = 'result-item';
-    resultItem.innerHTML = `
-      <h3>${result.title}</h3>
-      <div class="result-meta">
-        <span class="media-type">${result.media_type}</span>
-        ${result.genre ? `<span class="genre">${result.genre}</span>` : ''}
-        <span class="score">${(result.score * 100).toFixed(1)}% match</span>
-      </div>
-      <p class="description-truncated">${result.description?.substring(0, 150) || ''}${result.description?.length > 150 ? '...' : ''}</p>
-      ${result.description?.length > 150 ? 
-        `<div class="description-full" style="display:none;">${result.description}</div>
-         <span class="show-more-less" data-action="show-more">Show more</span>` : ''}
-    `;
-    
-    const showMoreLessBtn = resultItem.querySelector('.show-more-less');
-    if (showMoreLessBtn) {
-      showMoreLessBtn.addEventListener('click', (e) => {
-        const action = e.target.dataset.action;
-        const truncated = resultItem.querySelector('.description-truncated');
-        const full = resultItem.querySelector('.description-full');
-        
-        if (action === 'show-more') {
-          truncated.style.display = 'none';
-          full.style.display = 'block';
-          e.target.textContent = 'Show less';
-          e.target.dataset.action = 'show-less';
-        } else {
-          truncated.style.display = 'block';
-          full.style.display = 'none';
-          e.target.textContent = 'Show more';
-          e.target.dataset.action = 'show-more';
-        }
-        
-        e.stopPropagation(); 
-      });
-    }
-    
-    resultItem.addEventListener('click', (e) => {
-      if (!e.target.classList.contains('show-more-less')) {
-        document.querySelectorAll('.result-item').forEach(item => {
-          item.classList.remove('selected');
-        });
-        resultItem.classList.add('selected');
-        
-        fetchQueryExplanation(index, query);
-      }
-    });
-    
-    resultsList.appendChild(resultItem);
-  });
-  
-  resultsContainer.appendChild(resultsList);
-  
-  if (results.length > 0) {
-    document.querySelector('.result-item').classList.add('selected');
-    fetchQueryExplanation(0, query); 
-  }
-}
-
-      </script>
-      
-      <script>
-      document.addEventListener('DOMContentLoaded', function() {
-      const synopsisForm = document.querySelector('form[action="/search"]');
-      
-      if (synopsisForm) {
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const apiBaseUrl = isLocalhost ? '' : 'http://4300showcase.infosci.cornell.edu:5235/'; 
-        
-        if (!isLocalhost) {
-          synopsisForm.action = `${apiBaseUrl}/search`;
-        }
-        
-        synopsisForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          
-          const query = document.querySelector('textarea[name="query"]').value;
-          
-          if (!query) {
-            alert('Please enter text to search');
-            return;
           }
-          
-          let loadingIndicator = document.createElement('div');
-          loadingIndicator.id = 'loading';
-          loadingIndicator.innerHTML = 'Finding recommendations...';
-          loadingIndicator.style.color = 'white';
-          loadingIndicator.style.marginTop = '15px';
-          loadingIndicator.style.fontStyle = 'italic';
-          
-          let resultsContainer = document.getElementById('results');
-          if (!resultsContainer) {
-            resultsContainer = document.createElement('div');
-            resultsContainer.id = 'results';
-            resultsContainer.style.marginTop = '30px';
-            synopsisForm.after(resultsContainer);
-          } else {
+
+          function displaySearchResults(results, query) {
+            const resultsContainer = document.getElementById('search-results');
             resultsContainer.innerHTML = '';
-          }
-          
-          synopsisForm.after(loadingIndicator);
-          
-          const mediaType = document.querySelector('input[name="media_type"]:checked')?.value || 'all';
-          
-          const searchUrl = isLocalhost ? '/search' : `${apiBaseUrl}/search`;
-          
-          fetch(searchUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `query=${encodeURIComponent(query)}&media_type=${encodeURIComponent(mediaType)}`,
-            credentials: 'include',
-            mode: 'cors'
-          })
-          .then(response => {
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              return response.json();
-            } else {
-              return response.text().then(text => {
-                console.error('Non-JSON response:', text);
-                throw new Error('Server returned non-JSON response. Check the console for details.');
-              });
-            }
-          })
-          .then(data => {
-            if (document.getElementById('loading')) {
-              document.getElementById('loading').remove();
-            }
-            
-            if (data.error) {
-              resultsContainer.innerHTML = `<div class="alert-error" style="color: #ff6b6b; padding: 15px; background-color: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); margin-bottom: 15px;">${data.error}</div>`;
+            if (!results || results.length === 0) {
+              resultsContainer.innerHTML = ' < p > No results found.Try a different search. < /p>';
               return;
             }
-            
-            if (!data.results || data.results.length === 0) {
-              resultsContainer.innerHTML = `<div class="alert-info" style="color: #ffffff; padding: 15px; background-color: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); margin-bottom: 15px;">No recommendations found. Try a different search term.</div>`;
-              return;
-            }
+            const explanationSection = document.createElement('div');
+            explanationSection.className = 'explanation-section';
+            explanationSection.innerHTML = `
+    
+																		<h3 style="color: white; margin-top: 0;">Why these were recommended:</h3>
+																		<div id="explanation-tags"></div>
+  `;
+            resultsContainer.appendChild(explanationSection);
+            const resultsList = document.createElement('div');
+            resultsList.className = 'results-list';
+            results.forEach((result, index) => {
+              const resultItem = document.createElement('div');
+              resultItem.className = 'result-item';
+              // Add reviews section after description
+              // Add this inside the card.innerHTML section of the second script block
+              // After the description-container div
+              console.log("Result item:", result);
+              const reviewHtml = result.review ? `
+              <!-- Review section -->
+              <div class="review-section" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                <h4 style="color: rgba(255, 255, 255, 0.9); margin-top: 0; margin-bottom: 10px;">Review:</h4>
+                <p style="font-style: italic; color: rgba(255, 255, 255, 0.8); background-color: rgba(255, 255, 255, 0.05); padding: 10px; border-left: 3px solid rgba(255, 255, 255, 0.3);">
+                  "${result.review}"
+                </p>
+              </div>
+            ` : '';
 
-            
-            const resultsGrid = document.createElement('div');
-            resultsGrid.style.display = 'grid';
-            resultsGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
-            resultsGrid.style.gap = '20px';
-            resultsGrid.style.marginTop = '20px';
-            
-            data.results.forEach((result, index) => {
-              const card = document.createElement('div');
-              card.className = `media-card ${result.media_type || ''}`;
-              card.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-              card.style.border = '1px solid rgba(255, 255, 255, 0.1)';
-              card.style.padding = '20px';
-              
-              const score = result.score ? Math.round(result.score * 100) : '?';
-              
-              const description = result.description || 'No description available';
-              const needsTruncation = description.length > 150;
-              const shortDesc = needsTruncation ? description.substring(0, 150) + '...' : description;
-              
-              card.innerHTML = `
-                <div class="card-content">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="margin: 0; color: white; font-size: 18px;">${result.title || 'Untitled'}</h3>
-                     <span style="background-color: rgba(255, 255, 255, 0.2); color: white; padding: 4px 8px; font-size: 14px;">${score}% match</span>
-                  </div>
-                  <h4 style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 0; margin-bottom: 10px;">
+          //   card.innerHTML = `
+          //   <div class="card-content">
+          //     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          //       <h3 style="margin: 0; color: white; font-size: 18px;">${result.title || 'Untitled'}</h3>
+          //       <span style="background-color: rgba(255, 255, 255, 0.2); color: white; padding: 4px 8px; font-size: 14px;">${score}% match</span>
+          //     </div>
+          //     <h4 style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 0; margin-bottom: 10px;">
+          //       ${result.media_type ? (result.media_type.charAt(0).toUpperCase() + result.media_type.slice(1)) : 'Unknown'} 
+          //       ${result.genre ? '| ' + result.genre : ''}
+          //       ${result.media_score ? '| Rating: ' + result.media_score.toFixed(1) + '/10' : ''}
+          //     </h4>
+          //     <!-- Description with expandable functionality -->
+          //     <div class="description-container">
+          //       <p id="desc-truncated-${index}" class="description-truncated">
+          //         ${shortDesc}
+          //         ${needsTruncation ? `<span class="show-more-less" onclick="toggleDescription(this, ${index})">Show more</span>` : ''}
+          //       </p>
+          //       <p id="desc-full-${index}" class="description-full">
+          //         ${description}
+          //         <span class="show-more-less" onclick="toggleDescription(this, ${index})">Show less</span>
+          //       </p>
+          //     </div>
+          //     ${reviewHtml}
+          //   </div>
+          // `;
+
+              const showMoreLessBtn = resultItem.querySelector('.show-more-less');
+              if (showMoreLessBtn) {
+                showMoreLessBtn.addEventListener('click', (e) => {
+                  const action = e.target.dataset.action;
+                  const truncated = resultItem.querySelector('.description-truncated');
+                  const full = resultItem.querySelector('.description-full');
+                  if (action === 'show-more') {
+                    truncated.style.display = 'none';
+                    full.style.display = 'block';
+                    e.target.textContent = 'Show less';
+                    e.target.dataset.action = 'show-less';
+                  } else {
+                    truncated.style.display = 'block';
+                    full.style.display = 'none';
+                    e.target.textContent = 'Show more';
+                    e.target.dataset.action = 'show-more';
+                  }
+                  e.stopPropagation();
+                });
+              }
+              resultItem.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('show-more-less')) {
+                  document.querySelectorAll('.result-item').forEach(item => {
+                    item.classList.remove('selected');
+                  });
+                  resultItem.classList.add('selected');
+                  fetchQueryExplanation(index, query);
+                }
+              });
+              resultsList.appendChild(resultItem);
+            });
+            resultsContainer.appendChild(resultsList);
+            if (results.length > 0) {
+              document.querySelector('.result-item').classList.add('selected');
+              fetchQueryExplanation(0, query);
+            }
+          }
+        </script>
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            const synopsisForm = document.querySelector('form[action="/search"]');
+            if (synopsisForm) {
+              const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+              const apiBaseUrl = isLocalhost ? '' : 'http://4300showcase.infosci.cornell.edu:5235/';
+              if (!isLocalhost) {
+                synopsisForm.action = `${apiBaseUrl}/search`;
+              }
+              synopsisForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const query = document.querySelector('textarea[name="query"]').value;
+                if (!query) {
+                  alert('Please enter text to search');
+                  return;
+                }
+                let loadingIndicator = document.createElement('div');
+                loadingIndicator.id = 'loading';
+                loadingIndicator.innerHTML = 'Finding recommendations...';
+                loadingIndicator.style.color = 'white';
+                loadingIndicator.style.marginTop = '15px';
+                loadingIndicator.style.fontStyle = 'italic';
+                let resultsContainer = document.getElementById('results');
+                if (!resultsContainer) {
+                  resultsContainer = document.createElement('div');
+                  resultsContainer.id = 'results';
+                  resultsContainer.style.marginTop = '30px';
+                  synopsisForm.after(resultsContainer);
+                } else {
+                  resultsContainer.innerHTML = '';
+                }
+                synopsisForm.after(loadingIndicator);
+                const mediaType = document.querySelector('input[name="media_type"]:checked')?.value || 'all';
+                const searchUrl = isLocalhost ? '/search' : `${apiBaseUrl}/search`;
+                fetch(searchUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                  },
+                  body: `query=${encodeURIComponent(query)}&media_type=${encodeURIComponent(mediaType)}`,
+                  credentials: 'include',
+                  mode: 'cors'
+                }).then(response => {
+                  const contentType = response.headers.get('content-type');
+                  if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                  } else {
+                    return response.text().then(text => {
+                      console.error('Non-JSON response:', text);
+                      throw new Error('Server returned non-JSON response. Check the console for details.');
+                    });
+                  }
+                }).then(data => {
+                  if (document.getElementById('loading')) {
+                    document.getElementById('loading').remove();
+                  }
+                  if (data.error) {
+                    resultsContainer.innerHTML = `
+																		<div class="alert-error" style="color: #ff6b6b; padding: 15px; background-color: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); margin-bottom: 15px;">${data.error}</div>`;
+                    return;
+                  }
+                  if (!data.results || data.results.length === 0) {
+                    resultsContainer.innerHTML = `
+																		<div class="alert-info" style="color: #ffffff; padding: 15px; background-color: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); margin-bottom: 15px;">No recommendations found. Try a different search term.</div>`;
+                    return;
+                  }
+                  const resultsGrid = document.createElement('div');
+                  resultsGrid.style.display = 'grid';
+                  resultsGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+                  resultsGrid.style.gap = '20px';
+                  resultsGrid.style.marginTop = '20px';
+                  data.results.forEach((result, index) => {
+                    const card = document.createElement('div');
+                    card.className = `media-card ${result.media_type || ''}`;
+                    card.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    card.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                    card.style.padding = '20px';
+                    const score = result.score ? Math.round(result.score * 100) : '?';
+                    const description = result.description || 'No description available';
+                    const needsTruncation = description.length > 150;
+                    const shortDesc = needsTruncation ? description.substring(0, 150) + '...' : description;
+                    card.innerHTML = `
+                
+																		<div class="card-content">
+																			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+																				<h3 style="margin: 0; color: white; font-size: 18px;">${result.title || 'Untitled'}</h3>
+																				<span style="background-color: rgba(255, 255, 255, 0.2); color: white; padding: 4px 8px; font-size: 14px;">${score}% match</span>
+																			</div>
+																			<h4 style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 0; margin-bottom: 10px;">
                     ${result.media_type ? (result.media_type.charAt(0).toUpperCase() + result.media_type.slice(1)) : 'Unknown'} 
                     ${result.genre ? '| ' + result.genre : ''}
                     ${result.media_score ? '| Rating: ' + result.media_score.toFixed(1) + '/10' : ''}
                   </h4>
-                  
-                  <!-- Description with expandable functionality -->
-                  <div class="description-container">
-                    <p id="desc-truncated-${index}" class="description-truncated">
+																			<!-- Description with expandable functionality -->
+																			<div class="description-container">
+																				<p id="desc-truncated-${index}" class="description-truncated">
                       ${shortDesc}
-                      ${needsTruncation ? `<span class="show-more-less" onclick="toggleDescription(this, ${index})">Show more</span>` : ''}
-                    </p>
-                    <p id="desc-full-${index}" class="description-full">
+                      ${needsTruncation ? `
+																					<span class="show-more-less" onclick="toggleDescription(this, ${index})">Show more</span>` : ''}
+                    
+																				</p>
+																				<p id="desc-full-${index}" class="description-full">
                       ${description}
-                      <span class="show-more-less" onclick="toggleDescription(this, ${index})">Show less</span>
-                    </p>
-                  </div>
-                </div>
+                      
+																					<span class="show-more-less" onclick="toggleDescription(this, ${index})">Show less</span>
+																				</p>
+																			</div>
+																		</div>
+                                  
+                                 <!-- Review section -->
+${result.review ? `
+<div class="review-section" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+  <h4 style="color: rgba(255, 255, 255, 0.9); margin-top: 0; margin-bottom: 10px; font-size: 14px;">Review:</h4>
+  <p style="font-style: italic; color: rgba(255, 255, 255, 0.8); background-color: rgba(255, 255, 255, 0.05); padding: 10px; border-left: 3px solid rgba(255, 255, 255, 0.3); font-size: 12px; line-height: 1.4;">
+    "${result.review}"
+  </p>
+</div>
+` : ''}
               `;
+                    resultsGrid.appendChild(card);
+                  });
+                  resultsContainer.appendChild(resultsGrid);
+                  const explanationSection = document.createElement('div');
+                  explanationSection.id = 'query-explanation';
+                  explanationSection.className = 'explanation-section';
+                  explanationSection.innerHTML = `
               
-              resultsGrid.appendChild(card);
-            });
-            
-            resultsContainer.appendChild(resultsGrid);
-            
-            const explanationSection = document.createElement('div');
-            explanationSection.id = 'query-explanation';
-            explanationSection.className = 'explanation-section';
-
-            explanationSection.innerHTML = `
-              <h3 style="color: white; margin-top: 0;">Why these were recommended:</h3>
-              <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 5px;">
+																		<h3 style="color: white; margin-top: 0;">Why these were recommended:</h3>
+																		<p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 5px;">
                 SVG tags matching your query:
               </p>
-              <div id="explanation-tags" style="display: flex; flex-direction: column; margin-bottom: 20px;">
-                <div class="loading-indicator">Loading...</div>
-              </div>
+																		<div id="explanation-tags" style="display: flex; flex-direction: column; margin-bottom: 20px;">
+																			<div class="loading-indicator">Loading...</div>
+																		</div>
             `;
-
-            resultsContainer.appendChild(explanationSection);
-
-            // Fetch explanation data for the first result
-            if (data.results && data.results.length > 0) {
-              fetchQueryExplanation(0, query);
+                  resultsContainer.appendChild(explanationSection);
+                  // Fetch explanation data for the first result
+                  if (data.results && data.results.length > 0) {
+                    fetchQueryExplanation(0, query);
+                  } else {
+                    document.getElementById('explanation-tags').innerHTML = ' < p > No results available to explain. < /p>';
+                  }
+                }).catch(error => {
+                  console.error('Error details:', error);
+                  if (document.getElementById('loading')) {
+                    document.getElementById('loading').remove();
+                  }
+                  resultsContainer.innerHTML = `
+              
+																		<div class="alert-error" style="color: #ff6b6b; padding: 15px; background-color: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); margin-bottom: 15px;">
+																			<p>
+																				<strong>Error:</strong> ${error.message || 'An unknown error occurred'}
+																			</p>
+																			<p>This could happen if:</p>
+																			<ul style="margin-left: 20px; margin-top: 5px;">
+																				<li>The server is not accessible from your current domain (CORS issue)</li>
+																				<li>The server is down or unreachable</li>
+																				<li>The endpoint URL is incorrect</li>
+																				<li>The server is returning HTML instead of JSON</li>
+																				<li>There's a server-side error in processing your request</li>
+																			</ul>
+																			<p>Check the browser console (F12) for more detailed error information.</p>
+																		</div>
+            `;
+                });
+              });
             } else {
-              document.getElementById('explanation-tags').innerHTML = 
-                '<p>No results available to explain.</p>';
+              console.error('Form with action="/search" not found on page');
             }
-          })
-          .catch(error => {
-            console.error('Error details:', error);
-            
-            if (document.getElementById('loading')) {
-              document.getElementById('loading').remove();
-            }
-            
-            resultsContainer.innerHTML = `
-              <div class="alert-error" style="color: #ff6b6b; padding: 15px; background-color: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); margin-bottom: 15px;">
-                <p><strong>Error:</strong> ${error.message || 'An unknown error occurred'}</p>
-                <p>This could happen if:</p>
-                <ul style="margin-left: 20px; margin-top: 5px;">
-                  <li>The server is not accessible from your current domain (CORS issue)</li>
-                  <li>The server is down or unreachable</li>
-                  <li>The endpoint URL is incorrect</li>
-                  <li>The server is returning HTML instead of JSON</li>
-                  <li>There's a server-side error in processing your request</li>
-                </ul>
-                <p>Check the browser console (F12) for more detailed error information.</p>
-              </div>
-            `;
           });
-        });
-      } else {
-        console.error('Form with action="/search" not found on page');
-      }
-    });
-    </script>
+        </script>
   </body>
 </html>

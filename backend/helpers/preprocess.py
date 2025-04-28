@@ -61,17 +61,24 @@ def load_and_clean_data():
 
     books_df = books_df.drop_duplicates(subset=['book_name'])
 
-    books_clean = books_df[['book_name', 'summaries', 'categories', 'review_score']].rename(
+    books_clean = books_df[['book_name', 'summaries', 'categories', 'review_score', 'review']].rename(
         columns={'book_name': 'title',
                  'summaries': 'description', 'categories': 'genre', 'review_score': 'score'}
     )
+
     books_clean['media_type'] = 'book'
 
-    movies_clean = movies_df[['Series_Title', 'Overview', 'Genre', 'IMDB_Rating']].rename(
+    if 'reviews' not in books_clean.columns:
+        books_clean['reviews'] = [[] for _ in range(len(books_clean))]
+
+    movies_clean = movies_df[['Series_Title', 'Overview', 'Genre', 'IMDB_Rating', 'reviews']].rename(
         columns={'Series_Title': 'title',
                  'Overview': 'description', 'Genre': 'genre', 'IMDB_Rating': 'score'}
     )
     movies_clean['media_type'] = 'movie'
+
+    if 'reviews' not in movies_clean.columns:
+        movies_clean['reviews'] = [[] for _ in range(len(movies_clean))]
 
     if 'genres' in games_df.columns:
         games_df['genres'] = games_df['genres'].apply(process_genre)
@@ -79,10 +86,14 @@ def load_and_clean_data():
     games_df['description'] = games_df['short_description'].fillna(
         games_df['about_the_game']).fillna(
         games_df['detailed_description'])
-    games_clean = games_df[['name', 'description', 'genres', 'score']].rename(
+
+    games_clean = games_df[['name', 'description', 'genres', 'score', 'user_review']].rename(
         columns={'name': 'title', 'genres': 'genre'}
     )
     games_clean['media_type'] = 'game'
+
+    if 'user_review' not in games_clean.columns:
+        games_clean['user_review'] = [''] * len(games_clean)
 
     combined_df = pd.concat(
         [books_clean, movies_clean, games_clean], ignore_index=True)
@@ -90,6 +101,23 @@ def load_and_clean_data():
     combined_df['description'] = combined_df['description'].fillna('')
     combined_df['genre'] = combined_df['genre'].fillna('')
     combined_df['score'] = combined_df['score'].fillna(5.0)
+
+    combined_df['single_review'] = ''
+
+    mask_movies = combined_df['media_type'] == 'movie'
+    combined_df.loc[mask_movies, 'single_review'] = combined_df.loc[mask_movies, 'reviews'].apply(
+        lambda x: x[0] if isinstance(x, list) and len(x) > 0 else ''
+    )
+
+    mask_books = combined_df['media_type'] == 'book'
+    combined_df.loc[mask_books, 'single_review'] = combined_df.loc[mask_books, 'review'].apply(
+        lambda x: x if isinstance(x, str) else ''
+    )
+
+    mask_games = combined_df['media_type'] == 'game'
+    combined_df.loc[mask_games, 'single_review'] = combined_df.loc[mask_games, 'user_review'].apply(
+        lambda x: x if isinstance(x, str) else ''
+    )
 
     combined_df['score'] = pd.to_numeric(
         combined_df['score'], errors='coerce').fillna(5.0)
@@ -279,7 +307,7 @@ def create_combined_embeddings(df, alpha=0.7):
 
 def save_final_embeddings(df):
     save_df = df[['title', 'description', 'genre',
-                  'media_type', 'score', 'combined_embedding']]
+                  'media_type', 'score', 'combined_embedding', 'single_review']]
 
     with open('models/final_embeddings.pkl', 'wb') as f:
         pickle.dump(save_df, f)
