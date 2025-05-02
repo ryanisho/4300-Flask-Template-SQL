@@ -106,7 +106,8 @@ def load_and_clean_data():
 
     mask_movies = combined_df['media_type'] == 'movie'
     combined_df.loc[mask_movies, 'single_review'] = combined_df.loc[mask_movies, 'reviews'].apply(
-        lambda x: x[0] if isinstance(x, list) and len(x) > 0 else ''
+        lambda x: x[0]['text'] if isinstance(x, list) and len(x) > 0 and isinstance(x[0], dict) and 'text' in x[0]
+        else (x[0] if isinstance(x, list) and len(x) > 0 else '')
     )
 
     mask_books = combined_df['media_type'] == 'book'
