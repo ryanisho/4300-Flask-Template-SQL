@@ -13,6 +13,9 @@ from scipy.spatial.distance import cosine
 from transformers import AutoTokenizer, AutoModel
 import torch
 
+stemmer = PorterStemmer()
+
+
 os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..", os.curdir))
 
 LOCAL_MYSQL_USER = "root"
